@@ -56,7 +56,19 @@ Program* loadHexFile(const char* path);
 Program* loadBinFile(const char* path);
 const char* getFileExt(const char *filename);
 int getFileSize(FILE* file);
+void invalidIntelHex(int line);
 
+//////////////////////
+// String Parsing
+//////////////////////
+
+int countAlphaNumeric(char* str);
+void stripEOL(char* str);
+void hexToByteArray(char* buf, int max, char* hex);
+bool isValidHexString(const char* str);
+
+///////////////
 // Printing
+///////////////
 void print_usage(void);
 void print_error(const char* message);
