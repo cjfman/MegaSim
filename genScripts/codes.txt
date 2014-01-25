@@ -1,0 +1,142 @@
+// Basic Core
+// Arithmetic
+ADD
+ADC
+SUB
+SUBI
+SBC
+SBCI
+AND
+ANDI
+OR
+ORI
+EOR
+COM
+NEG
+SBR
+CBR
+INC
+DEC
+TST
+CLR
+SER
+// Branches
+RJMP
+RCALL
+RET
+RETI
+CPSE
+CP
+CPC
+CPI
+SBRC
+SBRS
+SBIC
+SBIS
+BRBS
+BRBC
+BREQ
+BRNE
+BRCS
+BRCC
+BRSH
+BRLO
+BRMI
+BRPL
+BRGE
+BRLT
+BRHS
+BRHC
+BRTS
+BRTC
+BRVS
+BRVC
+BRIE
+BRID
+// Transfers
+LD
+ST
+MOV
+LDI
+IN
+OUT
+LPM
+// Bitwise
+SBI
+CBI
+LSL
+LSR
+ROL
+ROR
+ASR
+SWAP
+BSET
+BCLR
+BST
+BLD
+SEC
+CLC
+SEN
+CLN
+SEZ
+CLZ
+SEI
+CLI
+SES
+CLS
+SEV
+CLV
+SET
+CLT
+SEH
+CLH
+NOP
+SLEEP
+WDR
+// Classic Core 8k
+// Arithmetic 
+ADIW
+SBIW
+// Braching
+IJMP
+ICALL
+// Transfer
+LDD
+LDS
+STD
+STS
+PUSH
+POP
+// Classic Core 128k
+// Branching
+JMP
+CALL
+// Transfer
+ELPM
+// Enhanced Core 8k
+// Arithmetic 
+MUL
+MULS
+MULSU
+FMUL
+FMULS
+FMULSU
+// Transfer
+MOVW
+LPM
+SPM
+// Enhanced Core 128k
+// Bitwise
+BREAK
+// Enhanced Core 4M
+// Branching
+EIJMP
+EICALL
+// XMEGA Core
+// Arithmetic
+DES
+// Transfer
+XCH
+LAS
+LAC
+LAT
