@@ -154,49 +154,6 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 			inst-> = STD;
 		}
 	}
-	// LD and ST
-	// Also LAC/LAS/LAT/XCH for XMEGA
-	else if (top7 == 0x24 && low4 != 0x0 && low4 != 0xF) {
-		inst->mode = low8 & 0x03;
-		inst->op = (top7 & 0x01) ? ST : LD;
-		swap = (opcode >> 2) & 0x03;
-		switch(swap) {
-		case 0: // RZ 
-			inst->ireg = RZ;
-			if (opcode & 0x0F == 0) 
-			break;
-		case 1: // Weird XMEGA OPCODE
-#ifdef XMEGA_SUPPORTED
-			// Override ST/LD
-			if (inst->op == LD)
-				inst->op = NULL;
-			else
-			switch(inst->mode) {
-			case 0: // XCH
-				inst->op = XCH;
-				break;
-			case 1: // LAS
-				inst->op = LAS;
-				break;
-			case 2: // LAC
-				inst->op = LAC;
-				break;
-			case 3: // LAT
-				inst->op = LAT;
-				break;
-			}
-#else
-			inst->op = NULL;
-#endif
-			break;
-		case 2: // RY
-			inst->ireg = RY;
-			break;
-		case 3: // RX
-			inst->ireg = RX;
-			break;
-		} 
-	}
 	// LDS and STS
 	// Note that this is specificially the LDS
 	// and STS not used by the ATtiny10 and similar
@@ -207,6 +164,68 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 	// PUSH and POP
 	else if (top6 == 0x24 && low4 == 0xF) {
 		inst->op = (top7 & 0x01) ? PUSH : POP;
+	}
+	// LD and ST
+	// Also LAC/LAS/LAT/XCH for XMEGA
+	// This Opcode must come after LDS/STS and PUSH/POP
+	// To prevent matching their codes.
+	else if (top7 == 0x24) {
+		inst->mode = low8 & 0x03;
+		inst->op = (top7 & 0x01) ? ST : LD;
+		swap = (opcode >> 2) & 0x03;
+		switch(swap) {
+		case 0: // RZ 
+			inst->ireg = RZ;
+			if (opcode & 0x0F == 0) 
+			break;
+		case 1: // Weird XMEGA OPCODE and LPM and ELPM modes ii-iii
+			// Override ST/LD
+			if (inst->op == LD)
+				switch(inst->mode) {
+					case 0: // LPM (ii)
+						inst->op = LPM;
+						inst->mode = 2;
+						break;
+					case 1: // LPM (iii)
+						inst->op = LPM;
+						inst->mode = 3;
+						break;
+					case 2: // ELPM (ii)
+						inst->op = ELPM;
+						inst->mode = 2;
+						break;
+					case 3: // ELPM (iii)
+						inst->op = ELPM;
+						inst->mode = 3;
+						break;
+				}
+			else
+#ifdef XMEGA_SUPPORTED
+				switch(inst->mode) {
+				case 0: // XCH
+					inst->op = XCH;
+					break;
+				case 1: // LAS
+					inst->op = LAS;
+					break;
+				case 2: // LAC
+					inst->op = LAC;
+					break;
+				case 3: // LAT
+					inst->op = LAT;
+					break;
+				}
+#else
+				inst->op = NULL;
+#endif
+			break;
+		case 2: // RY
+			inst->ireg = RY;
+			break;
+		case 3: // RX
+			inst->ireg = RX;
+			break;
+		} 
 	}
 	// 1-Operand Instructions
 	else if (top7 == 0x4A && (opcode & 0x08) == 0) {
@@ -246,6 +265,45 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->op = (isnt->D & 0x80) ? CLx : SEx;
 		inst->D = (~(inst->D >> 3)) & 0x01;
 		inst->R = (opcode >> 4) & 0x07;
+	}
+	// Misc Instructions
+	else if (top8 == 0x95 && low4 == 0x8) {
+		swap = (opcode >> 4) & 0x0F;
+		switch(swap) {
+		case 0: // RET
+			inst->op = RET;
+			break;
+		case 1: // RETI
+			isnt->op = RETI;
+			break;
+		case 8: // SLEEP
+			inst->op = SLEEP;
+			break;
+		case 9: // BREAK
+			isnt->op = BREAK;
+			break;
+		case 0xA: // WDR
+			inst->op = WDR;
+			break;
+		case 0xC: // LPM (i). ii-iii are located with LD and ST
+			inst->LPM;
+			inst->mode = 1;
+			break;
+		case 0xD: // ELPM (i). ii-iii are locaded with LD and ST
+			inst->ELPM;
+			inst->mode = 1;
+			break;
+		case 0xE: // SPM (i)
+			inst->op = SPM;
+			inst->mode = 1;
+			break;
+		case 0xF: // SPM (ii) aka SPM Z+
+			inst->op = SPM;
+			inst->mode = 2;
+			break;
+		default: // NULL
+			inst->op = NULL;
+		}
 	}
 	// JMP
 	else if (top7 == 0x4A && low8 & 0x0E == 0x0C) {
