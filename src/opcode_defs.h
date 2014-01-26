@@ -6,6 +6,7 @@
 
 #ifndef OPCODE_DEFS_h
 #define OPCODE_DEFS_h
+//#define XMEGA_SUPPORTED
 
 // Core levels
 #define CORE_L_MIN	 89 // Minimum Core
@@ -20,7 +21,7 @@
 // Opcode Definitions
 // Basic Core
 // Arithmetic
-#define ADD	0
+#define ADD	33	// ADD was 0, but I need that number for invalid OP (NULL)
 #define ADC	1
 #define SUB	2
 #define SUBI	3
@@ -53,13 +54,14 @@
 #define SBRS	29
 #define SBIC	30
 #define SBIS	31
-#define BRBS	32
-#define BRBC	33
+#define BRx	32	// Covers all SREG conditional branches
+#define BRBS	32	// Covered by the specific conditional branches
+#define BRBC	33	// This one too. ADD borrows 33 for it's code.
 #define BREQ	34
 #define BRNE	35
 #define BRCS	36
 #define BRCC	37
-#define BRSH	38
+#define BRSH	38	// aka BRCC
 #define BRLO	39
 #define BRMI	40
 #define BRPL	41
@@ -90,8 +92,8 @@
 #define ROR	64
 #define ASR	65
 #define SWAP	66
-#define BSET	67
-#define BCLR	68
+#define BSET	67	// Covered by SEx
+#define BCLR	68	// Covered by CLx
 #define BST	69
 #define BLD	70
 #define SEx	71	// The set and clear operations
