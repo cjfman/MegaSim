@@ -33,16 +33,6 @@ void initArgs(Args* args);
 int parseArgs(int argc, char* argv[], Args* args);
 
 
-///////////////////
-// Data Structures
-///////////////////
-
-typedef struct Program {
-	uint16_t *data;
-	int size;
-} Program;
-
-
 //////////////////
 // File Parsing
 //////////////////

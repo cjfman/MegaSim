@@ -6,8 +6,13 @@
 //
 
 #include <core.h>
-#define IS_ARITHMETIC_RS (-2 >> 1 == -1)
-#error MISC commands not implemented
+
+#error BRx not implemented
+#error BREAK not implemented
+#error xCALL not implemented
+#error xJMP not implemented
+#error CPSE not implemented
+#error xLPM not implemented
 
 void decodedInstruction(Instruction *inst, uint16_t opcode) {
 	// Most variables are always in the same place if used
@@ -15,6 +20,9 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 	inst->D = (opcode >> 4) & 0x1F;
 	inst->R = (opcode & 0x0F) | ((opcode >> 5) & 0x10);
 	inst->K = (opcode & 0x0F) | ((opcode >> 4) & 0xF0);
+	// Other defaults
+	inst->wsize = 1;
+	// Get commonly used opcode bit vectors
 	unsigned int top9 = opcode >> 9;	
 	unsigned int top8 = opcode >> 8;
 	unsigned int top7 = opcode >> 7;
@@ -454,3 +462,403 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->op = NULL;
 	}
 }
+
+
+/////////////////////////////////
+// Instruction Implementations
+/////////////////////////////////
+
+// Macros for getting bits
+#define GET_RD0 bool rd0 = regs[inst->D] & 0x01;
+#define GET_RD3 bool rd3 = (regs[inst->D] >> 3) & 0x01;
+#define GET_RD7 bool rd7 = (regs[inst->D] >> 7) & 0x01;
+#define GET_RR3 bool rr3 = (regs[inst->R] >> 3) & 0x01;
+#define GET_RR7 bool rr7 = (regs[inst->R] >> 7) & 0x01;
+#define GET_RES3 bool res3 = (res >> 3) & 0x01;
+#define GET_RES7 bool res7 = (res >> 7) & 0x01;
+#define GET_RES15 bool res15 = (res >> 15) & 0x01;
+
+// Bits for 16-bit operands
+#define GET_RDH7 bool rdh7 = (res >> 15) & 0x01;
+
+// Macros for calculating sreg bits
+#define CALC_H sreg[HREG] = (rd3 && rr3) | (rr3 && !res3) || (rd3 && !res3);
+#define CALC_V sreg[VREG] = (rd7 && rr7 && !res7) || (!rd7 && !rr7 && res7);
+#define CALC_N sreg[NREG] = res7;
+#define CALC_Z sreg[ZREG] = (res == 0);
+#define CALC_C sreg[CREG] = (rd7 && rr7)||(rr7 && !res7)||(rd7 && !res7);
+#define CALC_S sreg[SREG] = (sreg[NREG]^sreg[VREG]) & 0x01;
+
+
+int ADC_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] + regs[inst->R] + sreg[CREG];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES3;
+	GET_RES7;
+	// Calc sreg bits
+	CALC_H;
+	CALC_V;
+	CALC_N;
+	CALC_Z;
+	CALC_C;
+	CALC_S;
+	// Save Result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int ADD_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] + regs[inst->R]; 
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES3;
+	GET_RES7;
+	// Calc sreg bits
+	CALC_H;
+	CALC_V;
+	CALC_N;
+	CALC_Z;
+	CALC_C;
+	CALC_S;
+	// Save Result
+	regs[inst->D] = res;
+	return 0;
+}
+	
+int ADIW_run(Instruction *inst) {
+	inst->D = (inst->D << 1) + 24;	// Calculate regs index
+	uint16_t *dword = (uint16*)(&(regs[inst->D]));
+	uint16_t res = *dword + inst->K;
+	// Get bits
+	GET_RES15;
+	GET_RDH7;
+	// Calculate sreg bits
+	sreg[VREG] = res15 && !rdh7;
+	sreg[NREG] = res15;
+	CALC_Z;
+	sreg[CREG] = !res15 && rdh7;
+	CALC_S;
+	// Save Result
+	*dword = res;
+	return 0;
+}
+
+int AND_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] & regs[inst->R];
+	// Get bits
+	GET_RES7;
+	// Calc sreg
+	sreg[VREG] = 0;
+	CALC_N;
+	CALC_Z;
+	CALC_S;
+	// Save Result
+	regs[inst->D] = res;
+	return;
+}
+
+int ANDI_run(Instruction *inst) {
+	inst->D |= 0x10;		// Calculate index
+	uint8_t res = regs[inst->D] & (uint8_t)inst->K;
+	// Get bits
+	GET_RES7;
+	// Calc sreg
+	sreg[VREG] = 0;
+	CALC_N;
+	CALC_Z;
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int ASR_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] >> 1;	// Do shift
+	res |= regs[inst->D] & 0x80;		// Calc sign bit
+	// Get bits
+	GET_RD0;
+	GET_RD7
+	// Calc sreg
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = rd0;
+	CALC_S;
+	sreg[VREG] = sreg[NREG]^sreg[CREG];
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int BLD_run(Instruction *inst) {
+	bool set = (sreg[TREG] >> 6) & 0x01;
+	if (set) {
+		bitregs[inst->D] |= 0x01 << inst->R;
+	}
+	else {
+		bitregs[inst->D] &= ~(0x01 << inst->R;);
+	}
+	return 0;
+}
+
+int BRx_run(Instruction *inst);
+
+int BREAK_run(Instruction *inst);
+
+int BST_run(Instruction *inst) {
+	bool set = (regs[inst->D] >> inst->R) & 0x01;
+	if (set) { 
+		sreg[TREG] = 1;
+	}
+	else {
+		sreg[TREG] = 0;
+	}
+	return 0;
+}
+
+int CALL_run(Instruction *inst);
+
+int CBI_run(Instruction *inst) {
+	io_mem[inst->A] = ~(0x01 << inst->R);
+	return 0;
+}
+
+int COM_run(Instruction *inst) {
+	regs[inst->D] = ~regs[inst->D];
+	// Calculate sreg
+	sreg[VREG] = 0;
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = 1;
+	CALC_S;
+	return 0;
+}
+
+int CP_run(Instruction *inst) {
+	uint8_t = regs[inst->D] - regs[inst->R];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES7;
+	// Calculate sreg
+	CALC_H;
+	CALC_V;
+	CALC_N;
+	CALC_Z;
+	CALC_C;
+	CALC_S;
+	return 0;
+}
+
+int CPC_run(Instruction *inst) {
+	uint8_t = regs[inst->D] - regs[inst->R] - sreg[CREG];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES7;
+	// Calculate sreg
+	CALC_H;
+	CALC_V;
+	CALC_N;
+	CALC_Z;
+	CALC_C;
+	CALC_S;
+	return 0;
+}
+
+int CPI_run(Instruction *inst) {
+	uint8_t = regs[inst->D] - regs[inst->K];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES7;
+	// Calculate sreg
+	CALC_H;
+	CALC_V;
+	CALC_N;
+	CALC_Z;
+	CALC_C;
+	CALC_S;
+	return 0;
+}
+
+int CPSE_run(Instruction *inst);
+
+int DEC_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] - 1;
+	// Get bits
+	GET_RES7;
+	// Calculate sreg
+	sreg[VREG] = (res == 0x7F);
+	CALC_N;
+	CALC_Z;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+#ifdef XMEGA_SUPPORTED
+int DES_run(Instruction *inst);
+#endif
+
+int EICALL_run(Instruction *inst);
+
+int EIJMP_run(Instruction *inst);
+
+int ELPM_run(Instruction *inst);
+
+int EOR_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] ^ regs[inst->R];
+	// Get bits
+	GET_RES7;
+	// Calculate sreg
+	sreg[VREG] = 0;
+	CALC_N;
+	CALC_Z;
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int FMUL_run(Instruction *inst) {
+	inst->D += 16;	// Calculate the register
+	inst->R += 16;	// indexes
+	uint16_t res = regs[inst->D] * regs[inst->R];
+	bool bit = res >> 15;	// Get res15 before the shift
+	res = res << 1;			// DO shift
+	// Calculate sreg
+	sreg[CREG] = bit;
+	CALC_Z;
+	// Store result
+	regps[0] = res;
+	return 0;
+}
+
+int FMULS_run(Instruction *inst) {
+	inst->D += 16;
+	inst->R += 16;
+	int16_t opL, opR;	// Left and right operands
+#ifdef IS_ARITHMETIC_RS
+	opL = ((int16_t)regs[inst->D] << 8) >> 8;
+	opR = ((int16_t)regs[inst->R] << 8) >> 8;
+#else
+	opL = (int16_t)regs[inst->D];
+	opR = (int16_t)regs[inst->D];
+	if (opL & 0x0080) {
+		opL |= 0xFF00;
+	}
+	if (opR & 0x0080) {
+		opR |= 0xFF00;
+	}
+#endif
+	int16_t res = opL * opR;
+	bool bit = (res >> 15) 0x01;
+	res >>= 1;
+	// Calculate sreg
+	sreg[CREG] = bit;
+	CALC_Z;
+	regps[0] = res;
+	return 0;
+}
+
+int FMULSU_run(Instruction *inst) {
+	inst->D += 16;
+	inst->R += 16;
+	int16_t opL; 	// Left operand Rd is signed.
+	uint16_t opR;	// Right operand Rr is signed.
+	opR = (uint16_t)regs[inst->R];
+#ifdef IS_ARITHMETIC_RS
+	opL = ((int8_t)regs[inst->D] << 8) >> 8;
+#else
+	opL = (int16_t)regs[inst->D];
+	if (opL & 0x0080) {
+		opL |= 0xFF00;
+	}
+#endif
+	int16_t res = opL * opR;
+	bool bit = (res >> 15) 0x01;
+	res >>= 1;
+	// Calculate sreg
+	sreg[CREG] = bit;
+	CALC_Z;
+	regps[0] = res;
+	return 0;
+}
+
+int ICALL_run(Instruction *inst);
+int IJMP_run(Instruction *inst);
+int IN_run(Instruction *inst);
+int INC_run(Instruction *inst);
+int JMP_run(Instruction *inst);
+int LAC_run(Instruction *inst);
+int LAS_run(Instruction *inst);
+int LAT_run(Instruction *inst);
+int LD_run(Instruction *inst);
+int LDD_run(Instruction *inst);
+int LDI_run(Instruction *inst);
+int LDS_run(Instruction *inst);
+int LPM_run(Instruction *inst);
+int LPM_run(Instruction *inst);
+int LSL_run(Instruction *inst);
+int LSR_run(Instruction *inst);
+int MOV_run(Instruction *inst);
+int MOVW_run(Instruction *inst);
+int MUL_run(Instruction *inst);
+int MULS_run(Instruction *inst);
+int MULSU_run(Instruction *inst);
+int NEG_run(Instruction *inst);
+int NOP_run(Instruction *inst);
+int OR_run(Instruction *inst);
+int ORI_run(Instruction *inst);
+int OUT_run(Instruction *inst);
+int POP_run(Instruction *inst);
+int PUSH_run(Instruction *inst);
+int RCALL_run(Instruction *inst);
+int RET_run(Instruction *inst);
+int RETI_run(Instruction *inst);
+int RJMP_run(Instruction *inst);
+int ROL_run(Instruction *inst);
+int ROR_run(Instruction *inst);
+int SBC_run(Instruction *inst);
+int SBCI_run(Instruction *inst);
+int SBI_run(Instruction *inst);
+int SBIC_run(Instruction *inst);
+int SBIS_run(Instruction *inst);
+int SBIW_run(Instruction *inst);
+int SBR_run(Instruction *inst);
+int SBRC_run(Instruction *inst);
+int SBRS_run(Instruction *inst);
+int SEC_run(Instruction *inst);
+int SEH_run(Instruction *inst);
+int SEI_run(Instruction *inst);
+int SEN_run(Instruction *inst);
+int SER_run(Instruction *inst);
+int SES_run(Instruction *inst);
+int SET_run(Instruction *inst);
+int SEV_run(Instruction *inst);
+int SEZ_run(Instruction *inst);
+int SLEEP_run(Instruction *inst);
+int SPM_run(Instruction *inst);
+int ST_run(Instruction *inst);
+int STD_run(Instruction *inst);
+int STS_run(Instruction *inst);
+int SUB_run(Instruction *inst);
+int SUBI_run(Instruction *inst);
+int SWAP_run(Instruction *inst);
+int TST_run(Instruction *inst);
+int WDR_run(Instruction *inst);
+int XCH_run(Instruction *inst);
+

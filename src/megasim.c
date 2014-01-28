@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include "megasim.h"
+#include "core.h"
 
 int main(int argc, char* argv[]) {
 	int error = 0;
