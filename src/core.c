@@ -475,6 +475,9 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 #define GET_RD7 bool rd7 = (regs[inst->D] >> 7) & 0x01;
 #define GET_RR3 bool rr3 = (regs[inst->R] >> 3) & 0x01;
 #define GET_RR7 bool rr7 = (regs[inst->R] >> 7) & 0x01;
+#define GET_K0 bool k0 = regs[inst->K] & 0x01;
+#define GET_K3 bool k3 = (regs[inst->K] >> 3) & 0x01;
+#define GET_K7 bool k7 = (regs[inst->K] >> 7) & 0x01;
 #define GET_RES3 bool res3 = (res >> 3) & 0x01;
 #define GET_RES7 bool res7 = (res >> 7) & 0x01;
 #define GET_RES15 bool res15 = (res >> 15) & 0x01;
@@ -483,11 +486,8 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 #define GET_RDH7 bool rdh7 = (dword >> 15) & 0x01;
 
 // Macros for calculating sreg bits
-#define CALC_H sreg[HREG] = (rd3 && rr3) | (rr3 && !res3) || (rd3 && !res3);
-#define CALC_V sreg[VREG] = (rd7 && rr7 && !res7) || (!rd7 && !rr7 && res7);
 #define CALC_N sreg[NREG] = res7;
 #define CALC_Z sreg[ZREG] = (res == 0);
-#define CALC_C sreg[CREG] = (rd7 && rr7)||(rr7 && !res7)||(rd7 && !res7);
 #define CALC_S sreg[SREG] = (sreg[NREG]^sreg[VREG]) & 0x01;
 
 
@@ -503,11 +503,11 @@ int ADD_run(Instruction *inst) {
 	GET_RES3;
 	GET_RES7;
 	// Calc sreg bits
-	CALC_H;
-	CALC_V;
+	sreg[HREG] = (rd3 && rr3) || (rr3 && !res3) || (!res3 && rd3);
+	sreg[VREG] = (rd7 && rr7 && !res7) || (!rd7 && !rr7 && res7);
 	CALC_N;
 	CALC_Z;
-	CALC_C;
+	sreg[CREG] = (rd7 && rr7) || (rr7 && !res7) || (!res7 && rd7);
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
@@ -525,11 +525,11 @@ int ADC_run(Instruction *inst) {
 	GET_RES3;
 	GET_RES7;
 	// Calc sreg bits
-	CALC_H;
-	CALC_V;
+	sreg[HREG] = (rd3 && rr3) || (rr3 && !res3) || (!res3 && rd3);
+	sreg[VREG] = (rd7 && rr7 && !res7) || (!rd7 && !rr7 && res7);
 	CALC_N;
 	CALC_Z;
-	CALC_C;
+	sreg[CREG] = (rd7 && rr7) || (rr7 && !res7) || (!res7 && rd7);
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
@@ -540,7 +540,8 @@ int ADC_run(Instruction *inst) {
 int ADIW_run(Instruction *inst) {
 	//inst->D = (inst->D << 1) + 24;	// Calculate regs index
 	//uint16_t *dword = (uint16*)(&(regs[inst->D]));
-	uint16_t dword = regps[inst-D + 12];
+	inst->D += 12; // Calcuate index. d {24, 26, 28, 30}
+	uint16_t dword = regps[inst->D];
 	uint16_t res = dword + inst->K;
 	// Get bits
 	GET_RES15;
@@ -549,15 +550,56 @@ int ADIW_run(Instruction *inst) {
 	sreg[VREG] = res15 && !rdh7;
 	sreg[NREG] = res15;
 	CALC_Z;
-	sreg[CREG] = !res15 && rdh7;
+	sreg[CREG] = (!res15 && rdh7);
 	CALC_S;
 	// Save Result
-	*dword = res;
+	regps[inst->D] = res;
 	return 0;
 }
 
-int SUB_run(Instruction *inst);
-int SUBI_run(Instruction *inst);
+int SUB_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] - regs[inst->R];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES3;
+	GET_RES7;
+	// Calculate sreg
+	sreg[HREG] = (!rd3 && rr3) || (rr3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !rr7 && !res7) || (!rd7 && rr7 && res7);
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int SUBI_run(Instruction *inst) {
+	inst->D |= 0x1F;	// Calculate index (16 <= d <= 31)
+	uint8_t res = regs[inst->D] - inst->K;
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_K3;
+	GET_K7;
+	GET_RES3;
+	GET_RES7;
+	// Calc sreg
+	sreg[HREG] = (!rd3 && k3) || (k3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !k7 && res7) || (!rd7 && k7 && res7);
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = (!rd7 && k7) || (k7 && res7) || (res7 && rd7);
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
 int SBC_run(Instruction *inst);
 int SBCI_run(Instruction *inst);
 int SBIW_run(Instruction *inst);
@@ -754,11 +796,11 @@ int CP_run(Instruction *inst) {
 	GET_RR7;
 	GET_RES7;
 	// Calculate sreg
-	CALC_H;
-	CALC_V;
+	sreg[HREG] = (!rd3 && rr3) || (rr3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !rr7 && !res7) || (!rd7 && rr7 && res7);
 	CALC_N;
 	CALC_Z;
-	CALC_C;
+	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
 	CALC_S;
 	return 0;
 }
@@ -772,11 +814,11 @@ int CPC_run(Instruction *inst) {
 	GET_RR7;
 	GET_RES7;
 	// Calculate sreg
-	CALC_H;
-	CALC_V;
+	sreg[HREG] = (!rd3 && rr3) || (rr3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !rr7 && !res7) || (!rd7 && rr7 && res7);
 	CALC_N;
 	CALC_Z;
-	CALC_C;
+	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
 	CALC_S;
 	return 0;
 }
@@ -790,11 +832,11 @@ int CPI_run(Instruction *inst) {
 	GET_RR7;
 	GET_RES7;
 	// Calculate sreg
-	CALC_H;
-	CALC_V;
+	sreg[HREG] = (!rd3 && k3) || (k3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !k7 && res7) || (!rd7 && k7 && res7);
 	CALC_N;
 	CALC_Z;
-	CALC_C;
+	sreg[CREG] = (!rd7 && k7) || (k7 && res7) || (res7 && rd7);
 	CALC_S;
 	return 0;
 }
