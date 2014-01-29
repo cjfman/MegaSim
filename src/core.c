@@ -480,7 +480,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 #define GET_RES15 bool res15 = (res >> 15) & 0x01;
 
 // Bits for 16-bit operands
-#define GET_RDH7 bool rdh7 = (res >> 15) & 0x01;
+#define GET_RDH7 bool rdh7 = (dword >> 15) & 0x01;
 
 // Macros for calculating sreg bits
 #define CALC_H sreg[HREG] = (rd3 && rr3) | (rr3 && !res3) || (rd3 && !res3);
@@ -514,6 +514,7 @@ int ADD_run(Instruction *inst) {
 	return 0;
 }
 
+// Add with Carry
 int ADC_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] + regs[inst->R] + sreg[CREG];
 	// Get bits
@@ -535,10 +536,12 @@ int ADC_run(Instruction *inst) {
 	return 0;
 }
 	
+// Add Immediate to Word
 int ADIW_run(Instruction *inst) {
-	inst->D = (inst->D << 1) + 24;	// Calculate regs index
-	uint16_t *dword = (uint16*)(&(regs[inst->D]));
-	uint16_t res = *dword + inst->K;
+	//inst->D = (inst->D << 1) + 24;	// Calculate regs index
+	//uint16_t *dword = (uint16*)(&(regs[inst->D]));
+	uint16_t dword = regps[inst-D + 12];
+	uint16_t res = dword + inst->K;
 	// Get bits
 	GET_RES15;
 	GET_RDH7;
