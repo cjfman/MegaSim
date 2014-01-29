@@ -9,6 +9,10 @@
 
 #include <inttypes.h>
 
+#define IS_ARITHMETIC_RS (-2 >> 1 == -1)
+
+// MACROS
+#define GETBIT(var, index) ((var >> index) 0x01)
 
 ////////////////////////
 // Memory Structures
@@ -31,7 +35,7 @@ bool sreg[8];
 
 // General Perpose Registers
 uint8_t regs[32];
-uint16_t *regps = (uint16_t*)regs;
+uint16_t *regps = (uint16_t*)regs; // Register pairs
 
 // Program Counter
 unsigned int pc;
@@ -111,6 +115,7 @@ int BREAK_run(Instruction *inst);
 int BST_run(Instruction *inst);
 int CALL_run(Instruction *inst);
 int CBI_run(Instruction *inst);
+int CLx_run(Instruction *inst);
 //int CBR_run(Instruction *inst);
 //int CLC_run(Instruction *inst);
 //int CLH_run(Instruction *inst);
@@ -150,7 +155,6 @@ int LDD_run(Instruction *inst);
 int LDI_run(Instruction *inst);
 int LDS_run(Instruction *inst);
 int LPM_run(Instruction *inst);
-int LPM_run(Instruction *inst);
 int LSL_run(Instruction *inst);
 int LSR_run(Instruction *inst);
 int MOV_run(Instruction *inst);
@@ -177,17 +181,18 @@ int SBI_run(Instruction *inst);
 int SBIC_run(Instruction *inst);
 int SBIS_run(Instruction *inst);
 int SBIW_run(Instruction *inst);
-int SBR_run(Instruction *inst);
+//int SBR_run(Instruction *inst);
 int SBRC_run(Instruction *inst);
 int SBRS_run(Instruction *inst);
-int SEC_run(Instruction *inst);
-int SEH_run(Instruction *inst);
-int SEI_run(Instruction *inst);
-int SEN_run(Instruction *inst);
-int SER_run(Instruction *inst);
-int SES_run(Instruction *inst);
-int SET_run(Instruction *inst);
-int SEV_run(Instruction *inst);
+//int SEC_run(Instruction *inst);
+//int SEH_run(Instruction *inst);
+//int SEI_run(Instruction *inst);
+//int SEN_run(Instruction *inst);
+//int SER_run(Instruction *inst);
+//int SES_run(Instruction *inst);
+//int SET_run(Instruction *inst);
+//int SEV_run(Instruction *inst);
+int SEx_run(Instruction *inst);
 int SEZ_run(Instruction *inst);
 int SLEEP_run(Instruction *inst);
 int SPM_run(Instruction *inst);
@@ -197,7 +202,7 @@ int STS_run(Instruction *inst);
 int SUB_run(Instruction *inst);
 int SUBI_run(Instruction *inst);
 int SWAP_run(Instruction *inst);
-int TST_run(Instruction *inst);
+//int TST_run(Instruction *inst);
 int WDR_run(Instruction *inst);
 int XCH_run(Instruction *inst);
 
