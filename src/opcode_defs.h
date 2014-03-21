@@ -38,7 +38,7 @@
 #define CBR	14
 #define INC	15
 #define DEC	16
-#define TST	17	// Secretly AND
+#define TST	17	// Secretly ANDi
 #define CLR	18	// Secretly EOR
 #define SER	19
 // Branches
@@ -147,7 +147,7 @@
 #define FMULSU	108
 // Transfer
 #define MOVW	109
-#define LPM	110
+//#define LPM	110
 #define SPM	111
 // Enhanced Core 128k
 // Bitwise

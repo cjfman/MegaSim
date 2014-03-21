@@ -8,6 +8,7 @@
 #define CORE_h
 
 #include <inttypes.h>
+#include "devices.h"
 
 #define IS_ARITHMETIC_RS (-2 >> 1 == -1)
 
@@ -38,7 +39,7 @@ uint8_t regs[32];
 uint16_t *regps = (uint16_t*)regs; // Register pairs
 
 // Program Counter
-unsigned int pc;
+uint32_t pc;
 
 // Main Memory
 uint8_t *main_mem;
@@ -52,14 +53,34 @@ typedef struct Program {
     int size;
 } Program;
 
-////////////////////////
-// Opt Code Decoding
-////////////////////////
+Program *prog_mem;
 
+// Indirect Registers and Poiners
 uint16_t *RW = (uint16_t*)(&regs[24]);	// R25:R24
 uint16_t *RX = (uint16_t*)(&regs[26]);	// R27:R26
 uint16_t *RY = (uint16_t*)(&regs[28]);	// R29:R28
 uint16_t *RZ = (uint16_t*)(&regs[30]);	// R31:R30
+uint8_t *EIND;
+uint32_t *SP;
+
+////////////////////////
+// Device Properties
+////////////////////////
+
+coreType core;
+
+////////////////////////
+// Error Codes and Vars
+////////////////////////
+
+#define MEM_ERROR 0x01
+#define PROG_MEM_ERROR 0x02
+
+int error_val;
+
+////////////////////////
+// Opt Code Decoding
+////////////////////////
 
 // Stores decoded instructions
 typedef struct Instuction {
@@ -67,7 +88,7 @@ typedef struct Instuction {
 	uint8_t R;		// The source register. Sometimes SREG bit index. 
 	uint8_t D;		// The destination/source register. Sometimes bit value.
 	uint8_t mode;	// Mode of the operation
-	uint8_t A;		// Address
+	uint16_t A;		// Address and offset
 	int8_t K;		// Constant
 	uint16_t *ireg;	// Indirect register
 	uint8_t wsize;	// The size in words of the instruction

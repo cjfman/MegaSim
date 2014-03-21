@@ -317,7 +317,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 	// JMP
 	else if (top7 == 0x4A && low8 & 0x0E == 0x0C) {
 		inst->op = JMP;
-		inst->K = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
+		inst->A = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
 	}
 	// EIJMP
 	else if (opcode == 0x9419) {
@@ -335,7 +335,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 	// CALL
 	else if (top7 == 0x4A && low8 & 0x0E == 0x0D) {
 		inst->op = CALL;
-		inst->K = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
+		inst->A = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
 	}
 	// EICALL
 	else if (opcode == 0x9519) {
@@ -600,9 +600,67 @@ int SUBI_run(Instruction *inst) {
 	return 0;
 }
 
-int SBC_run(Instruction *inst);
-int SBCI_run(Instruction *inst);
-int SBIW_run(Instruction *inst);
+int SBC_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] - regs[inst->R] - sreg[CREG];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RR3;
+	GET_RR7;
+	GET_RES3;
+	GET_RES7;
+	// Calculate sreg
+	sreg[HREG] = (!rd3 && rr3) || (rr3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !rr7 && !res7) || (!rd7 && rr7 && res7);
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int SBCI_run(Instruction *inst) {
+	inst->D |= 0x1F;	// Calculate index (16 <= d <= 31)
+	uint8_t res = regs[inst->D] - inst->K - sreg[CREG];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_K3;
+	GET_K7;
+	GET_RES3;
+	GET_RES7;
+	// Calc sreg
+	sreg[HREG] = (!rd3 && k3) || (k3 && res3) || (res3 && !rd3);
+	sreg[VREG] = (rd7 && !k7 && res7) || (!rd7 && k7 && res7);
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = (!rd7 && k7) || (k7 && res7) || (res7 && rd7);
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+// Subtract Immediate from Word
+int SBIW_run(Instruction *inst) {
+	inst->D += 12; // Calc index. D (24, 26, 28, 30)
+	uint16_t dword = regps[inst->D];
+	uint16_t res = dword - inst->K;
+	// Get bits
+	GET_RDH7;
+	GET_RES15;
+	// Calculate sreg
+	sreg[VREG] = (rdh7 && !res15);
+	sreg[NREG] = res15;
+	CALC_Z;
+	sreg[CREG] = (res15 && !rdh7);
+	CALC_S;
+	// Save result
+	regps[inst->D] = res;
+	return 0;
+}
 
 // Logical AND
 int AND_run(Instruction *inst) {
@@ -635,8 +693,34 @@ int ANDI_run(Instruction *inst) {
 	return 0;
 }
 
-int OR_run(Instruction *inst);
-int ORI_run(Instruction *inst);
+int OR_run(Instruction *inst) {
+	uint8_t res = regs[inst->D] | regs[inst->R];
+	// Get bits
+	GET_RES7;
+	// Calculate sreg
+	sreg[VREG] = 0;
+	CALC_N;
+	CALC_Z;
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
+
+int ORI_run(Instruction *inst) {
+	inst->D |= 0x10;		// Calculate index
+	uint8_t res = regs[inst->D] | (uint8_t)inst->K;
+	// Get bits
+	GET_RES7;
+	// Calc sreg
+	sreg[VREG] = 0;
+	CALC_N;
+	CALC_Z;
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
 
 int EOR_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] ^ regs[inst->R];
@@ -653,17 +737,35 @@ int EOR_run(Instruction *inst) {
 }
 
 int COM_run(Instruction *inst) {
-	regs[inst->D] = ~regs[inst->D];
+	uint8_t res = ~regs[inst->D];
 	// Calculate sreg
 	sreg[VREG] = 0;
 	CALC_N;
 	CALC_Z;
 	sreg[CREG] = 1;
 	CALC_S;
+	// Store result
+	regs[inst->D] = res;
 	return 0;
 }
 
-int NEG_run(Instruction *inst);
+// Two's Complement
+int NEG_run(Instruction *inst) {
+	uint8_t res = 0 - regs[inst->D];
+	// Get bits
+	GET_RD3
+	GET_RES3;
+	// Calculate sreg
+	sreg[HREG] = (res3 | rd3);
+	sreg[VREG] = (res == 0x80);
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = (res != 0x00);
+	CALC_S;
+	// Save result
+	regs[inst->D] = res;
+	return 0;
+}
 
 // Increment
 int INC_run(Instruction *inst) {
@@ -675,6 +777,8 @@ int INC_run(Instruction *inst) {
 	CALC_N;
 	CALC_Z;
 	CALC_S;
+	// Save result
+	regs[inst->D] = res;
 	return 0;
 }
 
@@ -692,11 +796,73 @@ int DEC_run(Instruction *inst) {
 	return 0;
 }
 
-int SER_run(Instruction *inst);
+int SER_run(Instruction *inst) {
+	regs[inst-D] = 0xFF;
+	return 0;
+}
 
-int MUL_run(Instruction *inst);
-int MULS_run(Instruction *inst);
-int MULSU_run(Instruction *inst);
+// Multiply Unsigned
+int MUL_run(Instruction *inst) {
+	uint16_t res = regs[inst->D] * regs[inst->R];
+	bool bit = res >> 15;	// Get res15
+	// Calculate sreg
+	sreg[CREG] = bit;
+	CALC_Z;
+	// Store result
+	regps[0] = res;
+	return 0;
+}
+
+// Multiply Signed
+int MULS_run(Instruction *inst) {
+	inst->D += 16;
+	inst->R += 16;
+	int16_t opL, opR;	// Left and right operands
+#ifdef IS_ARITHMETIC_RS
+	opL = ((int16_t)regs[inst->D] << 8) >> 8;
+	opR = ((int16_t)regs[inst->R] << 8) >> 8;
+#else
+	opL = (int16_t)regs[inst->D];
+	opR = (int16_t)regs[inst->D];
+	if (opL & 0x0080) {
+		opL |= 0xFF00;
+	}
+	if (opR & 0x0080) {
+		opR |= 0xFF00;
+	}
+#endif
+	int16_t res = opL * opR;
+	bool bit = (res >> 15) 0x01;
+	// Calculate sreg
+	sreg[CREG] = bit;
+	CALC_Z;
+	regps[0] = res;
+	return 0;
+}
+
+// Multiply Signed with Unsigned
+int MULSU_run(Instruction *inst) {
+	inst->D += 16;
+	inst->R += 16;
+	int16_t opL; 	// Left operand Rd is signed.
+	uint16_t opR;	// Right operand Rr is signed.
+	opR = (uint16_t)regs[inst->R];
+#ifdef IS_ARITHMETIC_RS
+	opL = ((int8_t)regs[inst->D] << 8) >> 8;
+#else
+	opL = (int16_t)regs[inst->D];
+	if (opL & 0x0080) {
+		opL |= 0xFF00;
+	}
+#endif
+	int16_t res = opL * opR;
+	bool bit = (res >> 15) 0x01;
+	// Calculate sreg
+	sreg[CREG] = bit;
+	CALC_Z;
+	regps[0] = res;
+	return 0;
+}
 
 // Fractional Multiply Unsigned
 int FMUL_run(Instruction *inst) {
@@ -772,13 +938,99 @@ int DES_run(Instruction *inst);
 
 ////// Branch Instructions ////////////////
 
-int RJMP_run(Instruction *inst);
-int IJMP_run(Instruction *inst);
-int EIJMP_run(Instruction *inst);
-int JMP_run(Instruction *inst);
-int RCALL_run(Instruction *inst);
-int EICALL_run(Instruction *inst);
-int ICALL_run(Instruction *inst);
+// Relative Jump
+int RJMP_run(Instruction *inst) {
+	pc += inst->A;	// Plus one handled globally
+	if (pc + 1 >= prog_mem->size) {
+		error_value = pc;
+		return PROG_MEM_ERROR;
+	}
+	return 0;
+}
+
+// Indirect Jump
+int IJMP_run(Instruction *inst) {
+	pc = *RZ;
+	if (pc >= prog_mem->size) {
+		error_value = pc;
+		return PROG_MEM_ERROR;
+	}
+	pc--; 	// Correct for global increment
+	return 0;
+}
+
+// Extended Indirect Jump
+int EIJMP_run(Instruction *inst) {
+	pc = *RZ;
+	pc &= 0xFF;
+	pc |= *EIND << 8;
+	if (pc >= prog_mem->size) {
+		error_value = pc;
+		return PROG_MEM_ERROR;
+	}
+	pc--;	// Correct for global increment
+	return 0;
+}
+
+// Jump
+int JMP_run(Instruction *inst) {
+	pc = inst->A;
+	pc &= 0x3F;
+	if (pc + 1 >= prog_mem->size) {
+		error_value = pc + 1;
+		return PROG_MEM_ERROR
+	}
+	pc |= prog_mem->mem[pc + 1] << 6;
+	if (pc >= prog_mem->size) {
+		error_value = pc;
+		return PROG_MEM_ERROR;
+	}
+	pc--;	// Correct for global increment
+	return 0;
+}
+
+int RCALL_run(Instruction *inst) {
+	pc += inst->A; 	// Plus one handled by global increment
+	if (pc >= prog_mem->size) {
+		error_value = pc;
+		return PROG_MEM_ERROR;
+	}
+	if (core->pc_size == 22) {
+		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+	}
+	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
+	main_mem[(*SP)--] = pc & 0xFF;
+	if (*SP >= core->mem_size) {
+		error_value = *SP;
+		return SP_ERROR;
+	}
+	return 0;	
+}
+
+int EICALL_run(Instruction *inst) {
+	pc = *RZ;
+	pc &= 0xFF;
+	pc |= *EIND << 8;
+	if (pc >= prog_mem->size) {
+		error_value = pc;
+		return PROG_MEM_ERROR;
+	}
+	pc--;	// Correct for global increment
+	if (core->pc_size == 22) {
+		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+	}
+	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
+	main_mem[(*SP)--] = pc & 0xFF;
+	if (*SP >= core->mem_size) {
+		error_value = *SP;
+		return SP_ERROR;
+	}
+	return 0;	
+}
+
+int ICALL_run(Instruction *inst) {
+}
+
 int CALL_run(Instruction *inst);
 int RET_run(Instruction *inst);
 int RETI_run(Instruction *inst);
