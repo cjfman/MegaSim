@@ -6,4 +6,4 @@ all:$(PROJECT).c
 	CC $(FLAGS) $(PROJECT).c -o $(PROJECT)
 
 clean:
-	rm $(PROJECT) *.o
+	rm -rf $(PROJECT) *.o *.dSYM

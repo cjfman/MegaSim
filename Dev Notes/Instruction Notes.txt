@@ -1,0 +1,75 @@
+SEC 0 0
+CLC 1 0
+
+SEN 0 2
+CLN 1 2
+
+SEZ 0 1
+CLZ 1 1
+
+SEI 0 7
+CLI 1 7
+
+SES 4
+SEV 3
+SET 6
+SEH 5
+
+0 RET
+1 RETI
+8 SLEEP
+9 BREAK
+A WDR
+C LPM (i)
+D ELPM (i)
+E SPM
+F SPM Z+
+
+// Redundant Codes
+BRSH	>> BRCC
+BRLO	>> BRCS
+CBR	>> ANDI
+LSL	>> ADD
+ROL	>> ADC
+SBR	>> ORI
+TST	>> AND
+CLR	>> EOR
+
+// Aggregated Codes
+BRx:
+-BRBC
+-BRBS 
+-BRCC (C)
+-BRCS (C)
+-BREQ (Z)
+-BRNE (Z)
+-BRGE (S)
+-BRHC (H)
+-BRHS (H)
+-BRID (I)
+-BRIE (I)
+-BRLO >> BRCS
+-BRSH >> BRCC
+-BRLT >> (S)
+-BRMI (N)
+-BRPL (N)
+-BRTC (T)
+-BRTS (T)
+-BRVC (V)
+-BRVS (V)
+
+CLx:
+-BCLR
+-CLC
+-CLH
+-CLI
+-CLN
+-CLS
+-CLT
+-CLV
+-CLZ
+
+SEx:
+-BSET
+	
+

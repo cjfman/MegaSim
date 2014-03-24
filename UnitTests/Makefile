@@ -2,7 +2,7 @@
 # tests.  Please tweak it to suit your environment and project.  You
 # may want to move it to your project's root directory.
 #
-# SYNOPSIS:
+
 #
 #   make [all]  - makes everything.
 #   make TARGET - makes the given target.
@@ -23,7 +23,11 @@ GTEST_DIR = GTest
 USER_DIR = ../src
 
 # Tests
-TESTS = opcode_test.cpp
+TESTS = opcode_test.cpp \
+	decoder_tests.cpp
+
+# All of the sources I want compiled
+SRC = decoder.c
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -37,10 +41,7 @@ FLAGS = -I$(USER_DIR) -IGtest/include
 CXXFLAGS += -g -Wall -Wextra -pthread $(FLAGS)
 
 # Flags passed to the C compiler
-CCFLAGS = $(FLAGS) 
-
-# All of the sources I want compiled
-SRC = 
+CCFLAGS = -g -Wall -Wextra -pthread $(FLAGS) 
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -57,7 +58,8 @@ all : $(TARGET)
 # trailing _.
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
-OBJS = $(SRC:.c=.c.o) $(TESTS:.cpp=.cpp.o)
+OBJS = $(SRC:%.c=$(USER_DIR)/%.c.o) \
+	$(TESTS:.cpp=.cpp.o)
 
 
 # For simplicity and to avoid depending on Google Test's

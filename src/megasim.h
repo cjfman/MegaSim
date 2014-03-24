@@ -3,17 +3,13 @@
 //
 // MIT Lisense
 
+#ifndef MEGASIM_h
+#define MEGASIM_h
+
 #include <stdio.h>
 #include <inttypes.h>
-
-// Boolean defines
-#define TRUE 1
-#define True 1
-#define true 1
-#define FALSE 0
-#define False 0
-#define false 0
-typedef uint8_t bool;
+#include "bool.h"
+#include "core.h"
 
 //////////////////
 // Option Parsing
@@ -62,3 +58,6 @@ bool isValidHexString(const char* str);
 ///////////////
 void print_usage(void);
 void print_error(const char* message);
+
+
+#endif
