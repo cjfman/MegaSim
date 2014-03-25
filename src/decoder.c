@@ -151,6 +151,7 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 	else if (top4 == 0x5) {
 		inst->op = SUBI;
 		inst->D &= 0x0F;
+		inst->D |= 0x10;	// 16 ≤ rd ≤ 31
 	}
 	// ORI
 	else if (top4 == 0x6) {
