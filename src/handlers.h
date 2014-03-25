@@ -1,4 +1,4 @@
-// handers.h
+// handlers.h
 
 // Developed by Charles Franklin
 //
@@ -6,6 +6,10 @@
 
 #ifndef HANDLERS_h
 #define HANDLERS_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <inttypes.h>
 #include "bool.h"
@@ -159,4 +163,8 @@ int XCH_run(Instruction *inst);
 
 #define BAD_REG 1
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif // HANDLERS_h

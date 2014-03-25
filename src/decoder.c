@@ -6,20 +6,16 @@
 //
 
 #include "decoder.h"
+#include "opcode_defs.h"
 
-// Stores decoded instructions
-struct Instuction {
-    uint8_t op;     // The basic operation
-    uint8_t R;      // The source register. Sometimes SREG bit index. 
-    uint8_t D;      // The destination/source register. Sometimes bit value.
-    uint8_t mode;   // Mode of the operation
-    uint16_t A;     // Address and offset
-    int8_t K;       // Constant
-    uint16_t *ireg; // Indirect register
-    uint8_t wsize;  // The size in words of the instruction
-};
+#ifdef DEBUG
+#include <stdio.h>
+void decoderIllop(const char* m) {
+	printf("Decoder Error Illop: %s\n", m);
+}
+#endif
 
-void makeBlankIntruction(Instruction *inst) {
+void makeBlankInstruction(Instruction *inst) {
 	inst->op = 0;
 	inst->R = 0;
 	inst->D = 0;
@@ -30,7 +26,7 @@ void makeBlankIntruction(Instruction *inst) {
 	inst->wsize = 0;
 }
 
-void decodedInstruction(Instruction *inst, uint16_t opcode) {
+void decodeInstruction(Instruction *inst, uint16_t opcode) {
 	// Most variables are always in the same place if used
 	// Get them now before conditional statements
 	inst->D = (opcode >> 4) & 0x1F;
@@ -39,12 +35,12 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 	// Other defaults
 	inst->wsize = 1;
 	// Get commonly used opcode bit vectors
-	unsigned int top9 = opcode >> 9;	
+	//unsigned int top9 = opcode >> 9;	
 	unsigned int top8 = opcode >> 8;
-	unsigned int top7 = opcode >> 7;
-	unsigned int top6 = opcode >> 6;
-	unsigned int top5 = opcode >> 5;
-	unsigned int top4 = opcode >> 4;
+	unsigned int top7 = opcode >> 9;
+	unsigned int top6 = opcode >> 10;
+	unsigned int top5 = opcode >> 11;
+	unsigned int top4 = opcode >> 12;
 	unsigned int low8 = opcode & 0xFF;
 	unsigned int low4 = opcode & 0x0F;
 	unsigned int swap;
@@ -86,9 +82,12 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 			else if (swap == 0x88) {
 				inst->op = FMULSU;
 			}
-			// NULL
+			// ILLOP
 			else {
-				inst->op = NULL;
+#ifdef DEBUG
+				decoderIllop("Signed and Fractional Multiply");
+#endif
+				inst->op = ILLOP;
 			}
 		}
 	}
@@ -164,7 +163,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->D &= 0x0F;
 	}
 	// LDD and STD
-	else if (top4 & 0xD == 0x8) {
+	else if ((top4 & 0xD) == 0x8) {
 		inst->K = (opcode & 0x7) | ((opcode >> 7) & 0x18)
 			| ((opcode >> 8) & 0x20);
 		inst->ireg = (low8 & 0x08) ? RY : RZ;
@@ -175,7 +174,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		}
 		// STD
 		else {
-			inst-> = STD;
+			inst->op = STD;
 		}
 	}
 	// LDS and STS
@@ -200,7 +199,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		switch(swap) {
 		case 0: // RZ 
 			inst->ireg = RZ;
-			if (opcode & 0x0F == 0) 
+			if ((opcode & 0x0F) == 0) 
 			break;
 		case 1: // Weird XMEGA OPCODE and LPM and ELPM modes ii-iii
 			// Override ST/LD
@@ -240,8 +239,11 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 					break;
 				}
 #else
-				inst->op = NULL;
-#endif
+				inst->op = ILLOP;
+#ifdef DEBUG
+				decoderIllop("XMEGA specific opcodes");
+#endif // DEBUG
+#endif // XMEGA_SUPPORTED
 			break;
 		case 2: // RY
 			inst->ireg = RY;
@@ -276,9 +278,11 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		case 7: // ROR
 			inst->op = ROR;
 			break;
-		default: // NULL
-			inst->op = NULL;
-
+		default: // ILLOP
+			inst->op = ILLOP;
+#ifdef DEBUG
+			decoderIllop("1 operand instructions");
+#endif // DEBUG
 		}
 	}
 	// SEx and CLx
@@ -310,11 +314,11 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 			inst->op = WDR;
 			break;
 		case 0xC: // LPM (i). ii-iii are located with LD and ST
-			inst->LPM;
+			inst->op = LPM;
 			inst->mode = 1;
 			break;
 		case 0xD: // ELPM (i). ii-iii are locaded with LD and ST
-			inst->ELPM;
+			inst->op = ELPM;
 			inst->mode = 1;
 			break;
 		case 0xE: // SPM (i)
@@ -325,12 +329,15 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 			inst->op = SPM;
 			inst->mode = 2;
 			break;
-		default: // NULL
-			inst->op = NULL;
+		default: // ILLOP
+			inst->op = ILLOP;
+#ifdef DEBUG
+			decoderIllop("MISC instructions");
+#endif // DEBUG
 		}
 	}
 	// JMP
-	else if (top7 == 0x4A && low8 & 0x0E == 0x0C) {
+	else if ((top7 == 0x4A) && (low8 & 0x0E) == 0x0C) {
 		inst->op = JMP;
 		inst->A = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
 	}
@@ -339,7 +346,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->op = EIJMP;
 	}
 	// IJMP
-	else if (opcdoe == 0x9409) {
+	else if (opcode == 0x9409) {
 		inst->op = IJMP;
 	}
 	// RJMP
@@ -348,7 +355,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->A = opcode & 0x0FFF;
 	}
 	// CALL
-	else if (top7 == 0x4A && low8 & 0x0E == 0x0D) {
+	else if (top7 == 0x4A && (low8 & 0x0E) == 0x0D) {
 		inst->op = CALL;
 		inst->A = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
 	}
@@ -357,7 +364,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->op = EICALL;
 	}
 	// ICALL
-	else if (opcdoe == 0x9509) {
+	else if (opcode == 0x9509) {
 		inst->op = ICALL;
 	}
 	// RCALL
@@ -366,11 +373,11 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->A = opcode & 0x0FFF;
 	}
 	// DEC
-	else if (opcode & 0xFE0F == 0x940A) {
+	else if ((opcode & 0xFE0F) == 0x940A) {
 		inst->op = DEC;
 	}
 	// DES
-	else if (opcode & 0xFF0F == 0x940B) {
+	else if ((opcode & 0xFF0F) == 0x940B) {
 		inst->op = DES;
 		inst->D &= 0x0F;
 	}
@@ -428,7 +435,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 			inst->op = SBIC;
 			break;
 		case 2:	// SBI
-			inst->op SBI;
+			inst->op = SBI;
 			break;
 		case 3: //SBIS
 			inst->op = SBIS;
@@ -457,7 +464,7 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->D &= (~(opcode >> 10)) & 0x01;
 		inst->K = (opcode >> 2) & 0xFF;	// Line up sign bit with MSB
 #if IS_ARITHMETIC_RS
-		inst->K = inst-K >> 1;			// Perform arithmetic shift
+		inst->K = inst->K >> 1;			// Perform arithmetic shift
 #else
 		swap = inst->K & 0x80;			// Extract sign bit
 		inst->K = opcode >> 1;			// Perform bitwise shift
@@ -475,6 +482,9 @@ void decodedInstruction(Instruction *inst, uint16_t opcode) {
 		inst->R &= 0x07;
 	}
 	else {
-		inst->op = NULL;
+		inst->op = ILLOP;
+#ifdef DEBUG
+		decoderIllop("No match");
+#endif // DEBUG
 	}
 }

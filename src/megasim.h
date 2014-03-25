@@ -6,6 +6,10 @@
 #ifndef MEGASIM_h
 #define MEGASIM_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <inttypes.h>
 #include "bool.h"
@@ -59,5 +63,8 @@ bool isValidHexString(const char* str);
 void print_usage(void);
 void print_error(const char* message);
 
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif // MEGASIM_h

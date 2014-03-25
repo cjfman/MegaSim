@@ -26,6 +26,7 @@ TEST(OpcodeTest, SupportedXMEGA) {
 }
 
 TEST(OpcodeTest, Opcodes) {
+	EXPECT_EQ(ILLOP, 0);
 	EXPECT_EQ(ADD,	33);
 	EXPECT_EQ(ADC,	1);
 	EXPECT_EQ(SUB,	2);

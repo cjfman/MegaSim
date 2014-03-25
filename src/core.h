@@ -8,7 +8,7 @@
 #define CORE_h
 
 #include <inttypes.h>
-#include "bool.h"
+#include <stdbool.h>
 #include "devices.h"
 
 // MACROS
@@ -35,7 +35,7 @@ bool sreg[8];
 
 // General Perpose Registers
 uint8_t regs[32];
-uint16_t *regps = (uint16_t*)regs; // Register pairs
+extern uint16_t *regps; // Register pairs
 
 // Program Counter
 uint32_t pc;
@@ -47,15 +47,18 @@ uint8_t *main_mem;
 uint8_t *io_mem;
 
 // Program Memory
-typedef struct Program Program;
+typedef struct Program {
+    uint16_t *data;
+    int size;
+} Program;
 
 Program *prog_mem;
 
 // Indirect Registers and Poiners
-uint16_t *RW = (uint16_t*)(&regs[24]);	// R25:R24
-uint16_t *RX = (uint16_t*)(&regs[26]);	// R27:R26
-uint16_t *RY = (uint16_t*)(&regs[28]);	// R29:R28
-uint16_t *RZ = (uint16_t*)(&regs[30]);	// R31:R30
+extern uint16_t *RW;	// R25:R24
+extern uint16_t *RX;	// R27:R26
+extern uint16_t *RY;	// R29:R28
+extern uint16_t *RZ;	// R31:R30
 uint8_t *EIND;
 uint32_t *SP;
 
@@ -64,3 +67,5 @@ uint32_t *SP;
 ////////////////////////
 
 coreType core;
+
+#endif

@@ -17,7 +17,7 @@ TARGET=megasimtests
 
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
-GTEST_DIR = GTest
+GTEST_DIR = gtest
 
 # Where to find user code.
 USER_DIR = ../src
@@ -27,7 +27,8 @@ TESTS = opcode_test.cpp \
 	decoder_tests.cpp
 
 # All of the sources I want compiled
-SRC = decoder.c
+SRC = decoder.c \
+	  core.c
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -35,13 +36,13 @@ SRC = decoder.c
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to C and C++ compiler
-FLAGS = -I$(USER_DIR) -IGtest/include
+FLAGS = -I$(USER_DIR) -IGtest/include -D DEBUG
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread $(FLAGS)
+CXXFLAGS += -g -Wall -Wextra $(FLAGS)
 
 # Flags passed to the C compiler
-CCFLAGS = -g -Wall -Wextra -pthread $(FLAGS) 
+CCFLAGS = -g -Wall -Wextra $(FLAGS) 
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -107,4 +108,8 @@ $(TARGET) : gtest_main.a $(OBJS)
 #########
 
 clean :
-	rm -f $(TARGET) $(OBJS) gtest.a gtest_main.a *.o
+	rm -f $(TARGET) $(OBJS) 
+
+clean-all : clean 
+	rm -f gtest.a gtest_main.a *.o
+

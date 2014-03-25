@@ -21,6 +21,7 @@
 // Opcode Definitions
 // Basic Core
 // Arithmetic
+#define ILLOP 	0
 #define ADD	33	// ADD was 0, but I need that number for invalid OP (NULL)
 #define ADC	1
 #define SUB	2
