@@ -35,13 +35,13 @@
 #define EOR	10
 #define COM	11
 #define NEG	12
-#define SBR	13
-#define CBR	14
+#define SBR	13	// Same as ORI
+#define CBR	14	// Same as ANDI
 #define INC	15
 #define DEC	16
-#define TST	17	// Secretly ANDi
+#define TST	17	// Secretly ANDI
 #define CLR	18	// Secretly EOR
-#define SER	19
+#define SER	19	// Secretly LDI
 // Branches
 #define RJMP	20
 #define RCALL	21

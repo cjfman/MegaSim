@@ -23,10 +23,12 @@ void makeBlankInstruction(Instruction *inst) {
 	inst->A = 0;
 	inst->K = 0;
 	inst->ireg = 0;
-	inst->wsize = 0;
+	inst->wsize = 1;
 }
 
-void decodeInstruction(Instruction *inst, uint16_t opcode) {
+void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
+	// Dereferece opcode
+	uint16_t opcode = *opcode_p;
 	// Most variables are always in the same place if used
 	// Get them now before conditional statements
 	inst->D = (opcode >> 4) & 0x1F;
@@ -55,31 +57,32 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 		inst->K &= 0x0F;
 	}
 	// Signed and fractional multiply
-	else if (top7 == 0x1) {
+	else if ((opcode & 0xFE00) == 0x0200) {
 		// MULS
-		if (top8 == 0x02) {
+		if ((opcode & 0xFF00) == 0x0200) {
 			inst->op = MULS;
-			inst->D &= 0x0F;
-			inst->K &= 0x0F;
+			inst->D |= 0x10;	// Restricted register 16 ≤ rd ≤ 31
+			inst->R |= 0x10;	// Restricted register 16 ≤ rr ≤ 31
 		}
 		else {
-			swap = low8 & 0x88;
 			inst->D &= 0x07;
-			inst->K &= 0x07;
+			inst->D |= 0x10;	// Restricted register 16 ≤ rd ≤ 23
+			inst->R &= 0x07;
+			inst->R |= 0x10;	// Restricted register 16 ≤ rr ≤ 23
 			// MULSU
-			if (swap == 0x00) {
+			if ((opcode & 0xFF88) == 0x0300) {
 				inst->op = MULSU;
 			}
 			// FMUL
-			else if (swap == 0x08) {
+			else if ((opcode & 0xFF88) == 0x0308) {
 				inst->op = FMUL;
 			}
 			// FMULS
-			else if (swap == 0x80) {
+			else if ((opcode & 0xFF88) == 0x0380) {
 				inst->op = FMULS;
 			}
 			// FMULSU
-			else if (swap == 0x88) {
+			else if ((opcode & 0xFF88) == 0x0388) {
 				inst->op = FMULSU;
 			}
 			// ILLOP
@@ -97,43 +100,43 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 		inst->op = CPC;	
 	}
 	// ADD
-	else if (top6 == 0x03) {
+	else if ((opcode & 0xFC00) == 0x0C00) {
 		inst->op = ADD;
 	}
 	// SBC
-	else if (top6 == 0x02) {
+	else if ((opcode & 0xFC00) == 0x0800) {
 		inst->op = SBC;
 	}
 	// CPSE
-	else if (top6 == 0x04) {
+	else if ((opcode & 0xFC00) == 0x1000) {
 		inst->op = CPSE;
 	}
 	// CP
-	else if (top6 == 0x05) {
+	else if ((opcode & 0xFC00) == 0x1400) {
 		inst->op = CP;
 	}
 	// SUB
-	else if (top6 == 0x06) {
+	else if ((opcode & 0xFC00) == 0x1800) {
 		inst->op = SUB;
 	}
 	// ADC
-	else if (top6 == 0x07) {
+	else if ((opcode & 0xFC00) == 0x1C00) {
 		inst->op = ADC;
 	}
 	// AND
-	else if (top6 == 0x08) {
+	else if ((opcode & 0xFC00) == 0x2000) {
 		inst->op = AND;
 	}
 	// EOR
-	else if (top6 == 0x09) {
+	else if ((opcode & 0xFC00) == 0x2400) {
 		inst->op = EOR;
 	}
 	// OR
-	else if (top6 == 0x0A) {
+	else if ((opcode & 0xFC00) == 0x2800) {
 		inst->op = OR;
 	}
 	// MOV
-	else if (top6 == 0x0B) {
+	else if ((opcode & 0xFC00) == 0x3400) {
 		inst->op = MOV;
 	}
 	// Register-immediate instructions
@@ -145,23 +148,22 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 	// SBCI
 	else if (top4 == 0x4) {
 		inst->op = SBCI;
-		inst->D &= 0x0F;
+		inst->D |= 0x10;
 	}
 	// SUBI
 	else if (top4 == 0x5) {
 		inst->op = SUBI;
-		inst->D &= 0x0F;
-		inst->D |= 0x10;	// 16 ≤ rd ≤ 31
+		inst->D |= 0x10;	// Restricted register 16 ≤ rd ≤ 31
 	}
 	// ORI
 	else if (top4 == 0x6) {
 		inst->op = ORI;
-		inst->D &= 0xF;
+		inst->D |= 0x10;
 	}
 	// ANDI
 	else if (top4 == 0x7) {
 		inst->op = ANDI;
-		inst->D &= 0x0F;
+		inst->D |= 0x10;	// Restricted register 16 ≤ rd ≤ 31
 	}
 	// LDD and STD
 	else if ((top4 & 0xD) == 0x8) {
@@ -338,9 +340,12 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 		}
 	}
 	// JMP
-	else if ((top7 == 0x4A) && (low8 & 0x0E) == 0x0C) {
+	else if ((opcode & 0xFE0E) == 0x940C) {
 		inst->op = JMP;
-		inst->A = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
+		inst->AL = (opcode & 0x01) | ((opcode & 0x01F0) >> 3);
+		inst->AL = inst->AL << 16;
+		inst->AL |= *(opcode_p + 1);	// Use next word
+		inst->wsize = 2;
 	}
 	// EIJMP
 	else if (opcode == 0x9419) {
@@ -354,6 +359,15 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 	else if (top4 == 0xC) {
 		inst->op = RJMP;
 		inst->A = opcode & 0x0FFF;
+#if IS_ARITHMETIC_RS
+		inst->A = inst->A << 4;
+		inst->A = inst->A >> 4;
+#else
+		swap = inst->A & 0x0800;
+		if (swap) {
+			inst->A |= 0xF000;
+		}
+#endif
 	}
 	// CALL
 	else if (top7 == 0x4A && (low8 & 0x0E) == 0x0D) {
@@ -372,20 +386,31 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 	else if (top4 == 0xD) {
 		inst->op = RCALL;
 		inst->A = opcode & 0x0FFF;
+#if IS_ARITHMETIC_RS
+		inst->A = inst->A << 4;
+		inst->A = inst->A >> 4;
+#else
+		swap = inst->A & 0x0800;
+		if (swap) {
+			inst->A |= 0xF000;
+		}
+#endif
 	}
 	// DEC
 	else if ((opcode & 0xFE0F) == 0x940A) {
 		inst->op = DEC;
 	}
+#ifdef XMEGA_SUPPORTED
 	// DES
 	else if ((opcode & 0xFF0F) == 0x940B) {
 		inst->op = DES;
 		inst->D &= 0x0F;
 	}
+#endif
 	// ADIW
 	else if (top8 == 0x96) {
 		inst->op = ADIW;
-		inst->K = (opcode & 0xF) & ((opcode >> 2) & 0x30);
+		inst->K = (opcode & 0xF) | ((opcode >> 2) & 0x30);
 		swap = (opcode >> 4) & 0x3;
 		switch (swap) {
 		case 0: // RW
@@ -405,7 +430,7 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 	// SBIW
 	else if (top8 == 0x97) {
 		inst->op = SBIW;
-		inst->K = (opcode & 0xF) & ((opcode >> 2) & 0x30);
+		inst->K = (opcode & 0xF) | ((opcode >> 2) & 0x30);
 		swap = (opcode >> 4) & 0x3;
 		switch (swap) {
 		case 0: // RW
@@ -444,7 +469,7 @@ void decodeInstruction(Instruction *inst, uint16_t opcode) {
 		}
 	}
 	// Unsigned MUL
-	else if (top6 == 0x27) {
+	else if ((opcode & 0xFC00) == 0x9C00) {
 		inst->op = MUL;
 	}
 	// IN/OUT

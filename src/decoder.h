@@ -27,7 +27,8 @@ typedef struct Instuction {
 	uint8_t R;		// The source register. Sometimes SREG bit index. 
 	uint8_t D;		// The destination/source register. Sometimes bit value.
 	uint8_t mode;	// Mode of the operation
-	uint16_t A;		// Address and offset
+	int16_t A;		// Address and offset
+	uint32_t AL;	// Long Address
 	int8_t K;		// Constant
 	uint16_t *ireg;	// Indirect register
 	uint8_t wsize;	// The size in words of the instruction
@@ -37,7 +38,7 @@ typedef struct Instuction {
 void makeBlankInstruction(Instruction *inst);
 
 // Decodes instructions
-void decodeInstruction(Instruction *inst, uint16_t opcode);
+void decodeInstruction(Instruction *inst, uint16_t *opcode);
 
 
 /////////////////////////////////////

@@ -129,7 +129,6 @@ int SUB_run(Instruction *inst) {
 }
 
 int SUBI_run(Instruction *inst) {
-	inst->D |= 0x1F;	// Calculate index (16 <= d <= 31)
 	uint8_t res = regs[inst->D] - inst->K;
 	// Get bits
 	GET_RD3;
@@ -172,7 +171,6 @@ int SBC_run(Instruction *inst) {
 }
 
 int SBCI_run(Instruction *inst) {
-	inst->D |= 0x1F;	// Calculate index (16 <= d <= 31)
 	uint8_t res = regs[inst->D] - inst->K - sreg[CREG];
 	// Get bits
 	GET_RD3;
@@ -229,7 +227,6 @@ int AND_run(Instruction *inst) {
 
 // Logical AND with Immediate
 int ANDI_run(Instruction *inst) {
-	inst->D |= 0x10;		// Calculate index
 	uint8_t res = regs[inst->D] & (uint8_t)inst->K;
 	// Get bits
 	GET_RES7;
@@ -258,7 +255,6 @@ int OR_run(Instruction *inst) {
 }
 
 int ORI_run(Instruction *inst) {
-	inst->D |= 0x10;		// Calculate index
 	uint8_t res = regs[inst->D] | (uint8_t)inst->K;
 	// Get bits
 	GET_RES7;
@@ -346,10 +342,11 @@ int DEC_run(Instruction *inst) {
 	return 0;
 }
 
-int SER_run(Instruction *inst) {
+// Is LDI
+/*int SER_run(Instruction *inst) {
 	regs[inst-D] = 0xFF;
 	return 0;
-}
+}*/
 
 // Multiply Unsigned
 int MUL_run(Instruction *inst) {
@@ -365,8 +362,6 @@ int MUL_run(Instruction *inst) {
 
 // Multiply Signed
 int MULS_run(Instruction *inst) {
-	inst->D += 16;
-	inst->R += 16;
 	int16_t opL, opR;	// Left and right operands
 #ifdef IS_ARITHMETIC_RS
 	opL = ((int16_t)regs[inst->D] << 8) >> 8;
@@ -392,8 +387,6 @@ int MULS_run(Instruction *inst) {
 
 // Multiply Signed with Unsigned
 int MULSU_run(Instruction *inst) {
-	inst->D += 16;
-	inst->R += 16;
 	int16_t opL; 	// Left operand Rd is signed.
 	uint16_t opR;	// Right operand Rr is signed.
 	opR = (uint16_t)regs[inst->R];
@@ -416,8 +409,6 @@ int MULSU_run(Instruction *inst) {
 
 // Fractional Multiply Unsigned
 int FMUL_run(Instruction *inst) {
-	inst->D += 16;	// Calculate the register
-	inst->R += 16;	// indexes
 	uint16_t res = regs[inst->D] * regs[inst->R];
 	bool bit = res >> 15;	// Get res15 before the shift
 	res = res << 1;			// DO shift
@@ -524,13 +515,7 @@ int EIJMP_run(Instruction *inst) {
 
 // Jump
 int JMP_run(Instruction *inst) {
-	pc = inst->A;
-	pc &= 0x3F;
-	if (pc + 1 >= prog_mem->size) {
-		error_value = pc + 1;
-		return PROG_MEM_ERROR
-	}
-	pc |= prog_mem->mem[pc + 1] << 6;
+	pc = inst->AL;
 	if (pc >= prog_mem->size) {
 		error_value = pc;
 		return PROG_MEM_ERROR;
