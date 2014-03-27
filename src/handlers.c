@@ -88,10 +88,7 @@ int ADC_run(Instruction *inst) {
 	
 // Add Immediate to Word
 int ADIW_run(Instruction *inst) {
-	//inst->D = (inst->D << 1) + 24;	// Calculate regs index
-	//uint16_t *dword = (uint16*)(&(regs[inst->D]));
-	inst->D += 12; // Calcuate index. d {24, 26, 28, 30}
-	uint16_t dword = regps[inst->D];
+	uint16_t dword = *inst->ireg;
 	uint16_t res = dword + inst->K;
 	// Get bits
 	GET_RES15;
@@ -103,7 +100,7 @@ int ADIW_run(Instruction *inst) {
 	sreg[CREG] = (!res15 && rdh7);
 	CALC_S;
 	// Save Result
-	regps[inst->D] = res;
+	*inst->ireg = res;
 	return 0;
 }
 
@@ -193,8 +190,7 @@ int SBCI_run(Instruction *inst) {
 
 // Subtract Immediate from Word
 int SBIW_run(Instruction *inst) {
-	inst->D += 12; // Calc index. D (24, 26, 28, 30)
-	uint16_t dword = regps[inst->D];
+	uint16_t dword = *inst->ireg;
 	uint16_t res = dword - inst->K;
 	// Get bits
 	GET_RDH7;
@@ -206,7 +202,7 @@ int SBIW_run(Instruction *inst) {
 	sreg[CREG] = (res15 && !rdh7);
 	CALC_S;
 	// Save result
-	regps[inst->D] = res;
+	*ireg->ireg = res;
 	return 0;
 }
 
@@ -422,8 +418,6 @@ int FMUL_run(Instruction *inst) {
 
 // Fractional Multiply Signed
 int FMULS_run(Instruction *inst) {
-	inst->D += 16;
-	inst->R += 16;
 	int16_t opL, opR;	// Left and right operands
 #ifdef IS_ARITHMETIC_RS
 	opL = ((int16_t)regs[inst->D] << 8) >> 8;
@@ -450,8 +444,6 @@ int FMULS_run(Instruction *inst) {
 
 // Fractional Multiply Signed with Unsigned
 int FMULSU_run(Instruction *inst) {
-	inst->D += 16;
-	inst->R += 16;
 	int16_t opL; 	// Left operand Rd is signed.
 	uint16_t opR;	// Right operand Rr is signed.
 	opR = (uint16_t)regs[inst->R];
@@ -639,7 +631,7 @@ int MOV_run(Instruction *inst) {
 }
 
 int MOVW_run(Instruction *inst) {
-	regps[inst->D] = regps[inst->R];
+	regps[inst->D >> 1] = regps[inst->R >> 1];
 	return 0;
 }
 

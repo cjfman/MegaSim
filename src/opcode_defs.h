@@ -77,8 +77,8 @@
 #define BRIE	50
 #define BRID	51
 // Transfers
-#define LD	52
-#define ST	53
+#define LD	52	// NOTE: Number does not correspond to compatibility
+#define ST	53	// for LD and ST
 #define MOV	54
 #define LDI	55
 #define IN	56
@@ -127,7 +127,7 @@
 #define ICALL	93
 // Transfer
 #define LDD	94
-#define LDS	95
+#define LDS	95	// Specifically the two word version
 #define STD	96
 #define STS	97
 #define PUSH	98	// Secretly ST with mode 7

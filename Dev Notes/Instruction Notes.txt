@@ -15,6 +15,9 @@ SEV 3
 SET 6
 SEH 5
 
+// Misc
+1001 | 0101 | XXXX |1000
+X switch
 0 RET
 1 RETI
 8 SLEEP
@@ -71,5 +74,20 @@ CLx:
 
 SEx:
 -BSET
+
+
+Loads:
+ST/LD with X/Y/Z
+1001 | 00Ld | dddd | RRmm where m is mode
+L { 0:Load, 1:Store}
+RR { 0:Z, 2:Y, 3:X }
+mm { 0:direct, 1:post_inc, 2:pre_dec }  
+mode i X only
+
+ST/STD and LD/LDD
+modes (i-iii) coved by LD
+- mode (iv) with q = 0 is same as mode (i)
+10q0 | qqL &d | dddd | 1qqq
+L { 0:Load, 1:Store}
 	
 

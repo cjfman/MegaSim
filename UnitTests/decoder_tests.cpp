@@ -40,6 +40,7 @@ uint16_t encode_6bit_k(uint16_t k) {
 }
 
 #define EXPECT_ZERO(x) EXPECT_EQ(0, x)
+
 #define EXPECT_INST(inst, op_L, R_L, D_L, mode_L, A_L, K_L, ireg_L, wsize_L) \
 	EXPECT_EQ(op_L, inst.op); \
 	EXPECT_EQ(R_L, inst.R); \
@@ -49,7 +50,11 @@ uint16_t encode_6bit_k(uint16_t k) {
 	EXPECT_EQ(ireg_L, inst.ireg); \
 	EXPECT_EQ(wsize_L, inst.wsize);
 
-#define EXPECT_INST_BASIC(inst, op_L, R_L, D_L) \
+#define EXPECT_INST_BASIC(inst, op_L) \
+	EXPECT_EQ(op_L, inst.op); \
+	EXPECT_EQ(1, inst.wsize);
+
+#define EXPECT_INST_TWO(inst, op_L, R_L, D_L) \
 	EXPECT_EQ(op_L, inst.op); \
     EXPECT_EQ(R_L, inst.R); \
     EXPECT_EQ(D_L, inst.D); \
@@ -59,6 +64,13 @@ uint16_t encode_6bit_k(uint16_t k) {
 	EXPECT_EQ(op_L, inst.op); \
     EXPECT_EQ(D_L, inst.D); \
 	EXPECT_EQ(1, inst.wsize);
+
+#define EXPECT_INST_IMM(inst, op_L, D_L, K_L) \
+	EXPECT_EQ(op_L, inst.op); \
+	EXPECT_EQ(D_L, inst.D); \
+	EXPECT_EQ((int8_t)K_L, inst.K); \
+	EXPECT_EQ(1, inst.wsize);
+	
 
 TEST(Instructions, newInstruction) {
 	Instruction inst;
@@ -108,7 +120,7 @@ TEST_F(DecoderTwoOps, ADD_zero) {
 	rd = 0;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, ADD, rr, rd);
+	EXPECT_INST_TWO(inst, ADD, rr, rd);
 }
 
 TEST_F(DecoderTwoOps, ADD_num) {
@@ -117,7 +129,7 @@ TEST_F(DecoderTwoOps, ADD_num) {
 	rd = 2;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, ADD, rr, rd);
+	EXPECT_INST_TWO(inst, ADD, rr, rd);
 }
 
 uint16_t ADC_code = 0x1C00;
@@ -128,7 +140,7 @@ TEST_F(DecoderTwoOps, ADC_zero) {
 	rd = 0;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, ADC, rr, rd);
+	EXPECT_INST_TWO(inst, ADC, rr, rd);
 }
 
 TEST_F(DecoderTwoOps, ADC_num) {
@@ -137,7 +149,7 @@ TEST_F(DecoderTwoOps, ADC_num) {
 	rd = 4;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, ADC, rr, rd);
+	EXPECT_INST_TWO(inst, ADC, rr, rd);
 }
 
 uint16_t ADIW_code = 0x9600;
@@ -203,7 +215,7 @@ TEST_F(DecoderTwoOps, SUB_num) {
 	rd = 29;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, SUB, rr, rd);
+	EXPECT_INST_TWO(inst, SUB, rr, rd);
 }
 
 uint16_t SUBI_code = 0x5000;
@@ -253,7 +265,7 @@ TEST_F(DecoderTwoOps, SBC_num) {
 	rd = 5;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, SBC, rr, rd);
+	EXPECT_INST_TWO(inst, SBC, rr, rd);
 }
 
 uint16_t SBCI_code = 0x4000;
@@ -332,7 +344,7 @@ TEST_F(DecoderTwoOps, AND_num) {
 	rr = 28;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, AND, rr, rd);
+	EXPECT_INST_TWO(inst, AND, rr, rd);
 }
 
 uint16_t ANDI_code = 0x7000;
@@ -343,10 +355,7 @@ TEST_F(DecoderImmOps, ANDI_zero_k) {
 	k = 0;
 	code |= encode_4bit_rd(rd) | encode_k(k);
 	decodeInstruction(&inst, &code);
-	EXPECT_EQ(ANDI, inst.op);
-	EXPECT_EQ(rd, inst.D);
-	EXPECT_EQ((int8_t)k, inst.K);
-	EXPECT_EQ(1, inst.wsize);
+	EXPECT_INST_IMM(inst, ANDI, rd, k);
 }
 
 uint16_t ORI_code = 0x6000;
@@ -358,10 +367,7 @@ TEST_F(DecoderImmOps, ORI_wrap_rd) {
 	code |= encode_4bit_rd(rd) | encode_k(k);
 	decodeInstruction(&inst, &code);
 	rd |= 0x10;
-	EXPECT_EQ(ORI, inst.op);
-	EXPECT_EQ(rd, inst.D);
-	EXPECT_EQ((int8_t)k, inst.K);
-	EXPECT_EQ(1, inst.wsize);
+	EXPECT_INST_IMM(inst, ORI, rd, k);
 }
 
 uint16_t EOR_code = 0x2400;
@@ -372,7 +378,7 @@ TEST_F(DecoderTwoOps, EOR_num) {
 	rr = 27;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, EOR, rr, rd);
+	EXPECT_INST_TWO(inst, EOR, rr, rd);
 }
 
 uint16_t COM_code = 0x9400;
@@ -423,7 +429,7 @@ TEST_F(DecoderTwoOps, MUL_num) {
 	rr = 26;
 	code |= encode_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, MUL, rr, rd);
+	EXPECT_INST_TWO(inst, MUL, rr, rd);
 }
 
 uint16_t MULS_code = 0x0200;
@@ -436,7 +442,7 @@ TEST_F(DecoderMFSOps, MULS_zero) {
 	decodeInstruction(&inst, &code);
 	rr |= 0x10;
 	rd |= 0x10;
-	EXPECT_INST_BASIC(inst, MULS, rr, rd);
+	EXPECT_INST_TWO(inst, MULS, rr, rd);
 }
 
 TEST_F(DecoderMFSOps, MULS_wrap_rd) {
@@ -446,7 +452,7 @@ TEST_F(DecoderMFSOps, MULS_wrap_rd) {
 	code |= encode_4bit_regs(rr, rd);
 	decodeInstruction(&inst, &code);
 	rd |= 0x10;
-	EXPECT_INST_BASIC(inst, MULS, rr, rd);
+	EXPECT_INST_TWO(inst, MULS, rr, rd);
 }
 
 TEST_F(DecoderMFSOps, MULS_wrap_rr) {
@@ -456,7 +462,7 @@ TEST_F(DecoderMFSOps, MULS_wrap_rr) {
 	code |= encode_4bit_regs(rr, rd);
 	decodeInstruction(&inst, &code);
 	rr |= 0x10;
-	EXPECT_INST_BASIC(inst, MULS, rr, rd);
+	EXPECT_INST_TWO(inst, MULS, rr, rd);
 }
 
 uint16_t MULSU_code = 0x0300;
@@ -467,7 +473,7 @@ TEST_F(DecoderMFSOps, MULSU_zero) {
 	rd = 0;
 	code |= encode_4bit_regs(rr, rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, MULSU, 16, 16);
+	EXPECT_INST_TWO(inst, MULSU, 16, 16);
 }
 
 uint16_t FMUL_code = 0x0308;
@@ -478,7 +484,7 @@ TEST_F(DecoderMFSOps, FMUL_num) {
 	rd = 23;
 	code |= encode_4bit_regs(rr, rd) & 0x77;
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, FMUL, rr, rd);
+	EXPECT_INST_TWO(inst, FMUL, rr, rd);
 }
 
 uint16_t FMULS_code = 0x0380;
@@ -489,7 +495,7 @@ TEST_F(DecoderMFSOps, FMULS_wrap_rd_up_rr_down) {
 	rd = 14;
 	code |= encode_4bit_regs(rr, rd) & 0x77;
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, FMULS, 17, 22);
+	EXPECT_INST_TWO(inst, FMULS, 17, 22);
 }
 
 uint16_t FMULSU_code = 0x0388;
@@ -500,7 +506,7 @@ TEST_F(DecoderMFSOps, FMULSU_wrap_rr_up_rd_down) {
 	rd = 29;
 	code |= encode_4bit_regs(rr, rd) & 0x77;
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_BASIC(inst, FMULS, 19, 21);
+	EXPECT_INST_TWO(inst, FMULS, 19, 21);
 }
 
 #ifdef XMEGA_SUPPORTED
@@ -613,9 +619,7 @@ TEST_F(DecoderBranchOps, JMP_zero) {
 	code[1] = 0x0000;
 	uint32_t al = 0x00000000;
 	decodeInstruction(&inst, code);
-	EXPECT_EQ(JMP, inst.op);
-	EXPECT_EQ(al, inst.AL);
-	EXPECT_EQ(2, inst.wsize);
+	EXPECT_AL_INST(inst, JMP, al);
 }
 
 TEST_F(DecoderBranchOps, JMP_num_1) {
@@ -625,21 +629,17 @@ TEST_F(DecoderBranchOps, JMP_num_1) {
 	code[0] |= encode_al(al) >> 16;
 	code[1] = encode_al(al) & 0xFFFF;
 	decodeInstruction(&inst, code);
-	EXPECT_EQ(JMP, inst.op);
-	EXPECT_EQ(al, inst.AL);
-	EXPECT_EQ(2, inst.wsize);
+	EXPECT_AL_INST(inst, JMP, al);
 }
 
 TEST_F(DecoderBranchOps, JMP_num_2) {
 	uint16_t code[2];
 	code[0] = JMP_code;
 	uint32_t al = 0x1E586A;
-	code[0] |= ((al & 0x10000) >> 16) | ((al & 0x3E0000) >> 13);
-	code[1] = al & 0xFFFF;
+	code[0] |= encode_al(al) >> 16;
+	code[1] = encode_al(al) & 0xFFFF;
 	decodeInstruction(&inst, code);
-	EXPECT_EQ(JMP, inst.op);
-	EXPECT_EQ(al, inst.AL);
-	EXPECT_EQ(2, inst.wsize);
+	EXPECT_AL_INST(inst, JMP, al);
 }
 
 uint16_t RCALL_code = 0xD000;
@@ -673,4 +673,791 @@ TEST_F(DecoderBranchOps, RCALL_neg) {
 	code |= a & 0x0FFF;
 	decodeInstruction(&inst, &code);
 	EXPECT_R_INST(inst, RCALL, a);
+}
+
+uint16_t ICALL_code = 0x9509;
+
+TEST_F(DecoderBranchOps, ICALL_call) {
+	code = ICALL_code;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(ICALL, inst.op);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t EICALL_code = 0x9519;
+
+TEST_F(DecoderBranchOps, EICALL_call) {
+	code = EICALL_code;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(EICALL, inst.op);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t CALL_code = 0x940E;
+
+TEST_F(DecoderBranchOps, CALL_zero) {
+	uint16_t code[2];
+	code[0] = CALL_code;
+	code[1] = 0x0000;
+	uint32_t al = 0x00000000;
+	decodeInstruction(&inst, code);
+	EXPECT_AL_INST(inst, CALL, al);
+}
+
+TEST_F(DecoderBranchOps, CALL_num_1) {
+	uint16_t code[2];
+	code[0] = CALL_code;
+	uint32_t al = 0x21A586;
+	code[0] |= encode_al(al) >> 16;
+	code[1] = encode_al(al) & 0xFFFF;
+	decodeInstruction(&inst, code);
+	EXPECT_AL_INST(inst, CALL, al);
+}
+
+TEST_F(DecoderBranchOps, CALL_num_2) {
+	uint16_t code[2];
+	code[0] = CALL_code;
+	uint32_t al = 0x1E586A;
+	code[0] |= encode_al(al) >> 16;
+	code[1] = encode_al(al) & 0xFFFF;
+	decodeInstruction(&inst, code);
+	EXPECT_AL_INST(inst, CALL, al);
+}
+
+uint16_t RET_code = 0x9508;
+
+TEST_F(DecoderBranchOps, RET_call) {
+	code = RET_code;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(RET, inst.op);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t RETI_code = 0x9518;
+
+TEST_F(DecoderBranchOps, RETI_call) {
+	code = RETI_code;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(RETI, inst.op);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t CPSE_code = 0x1000;
+
+TEST_F(DecoderTwoOps, CPSE_num) {
+	code = CPSE_code;
+	rd = 7;
+	rr = 27;
+	code |= encode_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, CPSE, rr, rd);
+}
+
+uint16_t CP_code = 0x1400;
+
+TEST_F(DecoderTwoOps, CP_num) {
+	code = CP_code;
+	rd = 8;
+	rr = 26;
+	code |= encode_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, CP, rr, rd);
+}
+
+uint16_t CPC_code = 0x0400;
+
+TEST_F(DecoderTwoOps, CPC_num) {
+	code = CPC_code;
+	rd = 9;
+	rr = 25;
+	code |= encode_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, CPC, rr, rd);
+}
+
+uint16_t CPI_code = 0x3000;
+
+TEST_F(DecoderImmOps, CPI_zero) {
+	code = CPI_code;
+	rd = 0;
+	k = 0;
+	code |= encode_4bit_rd(rd) | encode_k(k);
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_EQ(CPI, inst.op);
+	EXPECT_EQ(rd, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderImmOps, CPI_num) {
+	code = CPI_code;
+	rd = 18;
+	k = 0x7E;
+	code |= encode_4bit_rd(rd) | encode_k(k);
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_EQ(CPI, inst.op);
+	EXPECT_EQ(rd, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderImmOps, CPI_neg_k) {
+	code = CPI_code;
+	rd = 30;
+	k = -1;
+	code |= encode_4bit_rd(rd) | encode_k(k);
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_EQ(CPI, inst.op);
+	EXPECT_EQ(rd, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderImmOps, CPI_wrap_rd) {
+	code = CPI_code;
+	rd = 9;
+	k = -6;
+	code |= encode_4bit_rd(rd) | encode_k(k);
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_EQ(CPI, inst.op);
+	EXPECT_EQ(rd, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t SBRC_code = 0xFC00;
+
+TEST_F(DecoderBranchOps, SBRC_zero) {
+	code = SBRC_code;
+	rd = 0;
+	rr = 0;
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, SBRC, rr, rd);
+}
+
+TEST_F(DecoderBranchOps, SBRC_num) {
+	code = SBRC_code;
+	rd = 0x15;
+	rr = 4;
+	code |= encode_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, SBRC, rr, rd);
+}
+
+TEST_F(DecoderBranchOps, SBRC_wrap_rr) {
+	code = SBRC_code;
+	rd = 0x0A;
+	rr = 24;
+	code |= encode_regs(rr & 0x7, rd);
+	decodeInstruction(&inst, &code);
+	rr &= 0x7;
+	EXPECT_INST_TWO(inst, SBRC, rr, rd);
+}
+
+uint16_t SBRS_code = 0xFE00;
+
+TEST_F(DecoderBranchOps, SBRS_zero) {
+	code = SBRS_code;
+	rd = 0;
+	rr = 0;
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, SBRS, rr, rd);
+}
+
+TEST_F(DecoderBranchOps, SBRS_num) {
+	code = SBRS_code;
+	rd = 0x19;
+	rr = 7;
+	code |= encode_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, SBRS, rr, rd);
+}
+
+TEST_F(DecoderBranchOps, SBRS_wrap_rr) {
+	code = SBRS_code;
+	rd = 0x06;
+	rr = 31;
+	code |= encode_regs(rr & 0x7, rd);
+	decodeInstruction(&inst, &code);
+	rr &= 0x7;
+	EXPECT_INST_TWO(inst, SBRS, rr, rd);
+}
+
+uint16_t SBIC_code = 0x9900;
+
+TEST_F(DecoderBranchOps, SBIC_zero) {
+	code = SBIC_code;
+	rr = 0;
+	a = 0;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(SBIC, inst.op);
+	EXPECT_EQ(a, inst.A);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, SBIC_num) {
+	code = SBIC_code;
+	rr = 5;
+	a = 0x1A;
+	code |= (rr & 0x7) | (a << 3);
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(SBIC, inst.op);
+	EXPECT_EQ(a, inst.A);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, SBIC_wrap) {
+	code = SBIC_code;
+	rr = 5;
+	a = 0x05;
+	code |= (rr & 0x7) | (a << 3);
+	rr &= 0x7;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(SBIC, inst.op);
+	EXPECT_EQ(a, inst.A);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t SBIS_code = 0x9B00;
+
+TEST_F(DecoderBranchOps, SBIS_zero) {
+	code = SBIS_code;
+	rr = 0;
+	a = 0;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(SBIS, inst.op);
+	EXPECT_EQ(a, inst.A);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, SBIS_num) {
+	code = SBIS_code;
+	rr = 1;
+	a = 0x19;
+	code |= (rr & 0x7) | (a << 3);
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(SBIS, inst.op);
+	EXPECT_EQ(a, inst.A);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, SBIS_wrap) {
+	code = SBIS_code;
+	rr = 3;
+	a = 0x06;
+	code |= (rr & 0x7) | (a << 3);
+	rr &= 0x7;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(SBIS, inst.op);
+	EXPECT_EQ(a, inst.A);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+uint16_t BRx_code = 0xF000;
+
+TEST_F(DecoderBranchOps, BRBC_zero) {
+	code = BRx_code | 0x0400;
+	k = 0;
+	rr = 0;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(BRx, inst.op);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(0, inst.D);
+	EXPECT_EQ(k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, BRBC_neg) {
+	code = BRx_code | 0x0400;
+	k = 0xDA;
+	rr = 5;
+	code |= rr | (k & 0x7F) << 3;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(BRx, inst.op);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(0, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, BRBC_num) {
+	code = BRx_code | 0x0400;
+	k = 0x15;
+	rr = 2;
+	code |= rr | (k & 0x7F) << 3;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(BRx, inst.op);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(0, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, BRBS_zero) {
+	code = BRx_code;
+	k = 0;
+	rr = 0;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(BRx, inst.op);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.D);
+	EXPECT_EQ(k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, BRBS_neg) {
+	code = BRx_code;
+	k = 0xDA;
+	rr = 5;
+	code |= rr | (k & 0x7F) << 3;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(BRx, inst.op);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+TEST_F(DecoderBranchOps, BRBS_num) {
+	code = BRx_code;
+	k = 0x15;
+	rr = 2;
+	code |= rr | (k & 0x7F) << 3;
+	decodeInstruction(&inst, &code);
+	EXPECT_EQ(BRx, inst.op);
+	EXPECT_EQ(rr, inst.R);
+	EXPECT_EQ(1, inst.D);
+	EXPECT_EQ((int8_t)k, inst.K);
+	EXPECT_EQ(1, inst.wsize);
+}
+
+
+//////////////////////////////
+// Data Transfer Instructions
+//////////////////////////////
+
+#define EXPECT_INST_ONE_AL(inst, op_L, d, al) \
+	EXPECT_EQ(op_L, inst.op); \
+	EXPECT_EQ(d, inst.D); \
+	EXPECT_EQ(al, inst.AL); \
+	EXPECT_EQ(2, inst.wsize);
+
+#define EXPECT_INST_DATA(inst, op_L, d, reg, mode_L) \
+	EXPECT_EQ(op_L, inst.op); \
+	EXPECT_EQ(d, inst.D); \
+	EXPECT_EQ(reg, inst.ireg); \
+	EXPECT_EQ(mode_L, inst.mode); \
+	EXPECT_EQ(1, inst.wsize);
+
+#define EXPECT_INST_Q(inst, op_L, d, q) \
+	EXPECT_EQ(op_L, inst.op); \
+	EXPECT_EQ(d, inst.D); \
+	EXPECT_EQ(q, inst.K); \
+	EXPECT_EQ(1, inst.wsize);
+
+#define EXPECT_INST_ONE_MODE(inst, op_L, d, mode_L) \
+	EXPECT_EQ(op_L, inst.op); \
+	EXPECT_EQ(d, inst.D); \
+	EXPECT_EQ(mode_L, inst.mode); \
+	EXPECT_EQ(1, inst.wsize);
+
+uint16_t encode_mode(uint8_t mode) {
+	return (mode - 1) & 0x3;
+}
+
+uint16_t encode_q(uint16_t q) {
+	return (q & 0x7) | ((q & 0x18) << 7) | ((q & 0x20) << 8);
+}
+
+class DecoderDataOps : public DecoderF {
+public:
+	uint8_t mode;
+	uint8_t q;
+	uint16_t al;
+	virtual void SetUp() {
+		DecoderF::SetUp();
+		al = 0;
+		mode = 0;
+		q = 0;
+	};
+};
+
+uint16_t MOV_code = 0x2C00;
+
+TEST_F(DecoderTwoOps, MOV_num) {
+	code = MOV_code;
+	rd = 10;
+	rr = 24;
+	code |= encode_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, MOV, rr, rd);
+}
+
+uint16_t MOVW_code = 0x0100;
+
+TEST_F(DecoderTwoOps, MOVW_zero) {
+	code = MOVW_code;
+	rd = 0;
+	rr = 0;
+	code |= encode_4bit_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_TWO(inst, MOVW, rr, rd);
+}
+
+TEST_F(DecoderTwoOps, MOVW_num_1) {
+	code = MOVW_code;
+	rd = 0xA;
+	rr = 0x5;
+	code |= encode_4bit_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	rd <<= 1;
+	rr <<= 1;
+	EXPECT_INST_TWO(inst, MOVW, rr, rd);
+}
+
+TEST_F(DecoderTwoOps, MOVW_num_2) {
+	code = MOVW_code;
+	rd = 0x5;
+	rr = 0xA;
+	code |= encode_4bit_regs(rr, rd);
+	decodeInstruction(&inst, &code);
+	rd <<= 1;
+	rr <<= 1;
+	EXPECT_INST_TWO(inst, MOVW, rr, rd);
+}
+
+uint16_t LDI_code = 0xE000;
+
+TEST_F(DecoderImmOps, LDI_zero) {
+	code = LDI_code;
+	rd = 0;
+	k = 0;
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_INST_IMM(inst, LDI, rd, k);
+}
+
+TEST_F(DecoderImmOps, LDI_neg) {
+	code = LDI_code;
+	rd = 0xA;
+	k = 0xAA;
+	code |= encode_k(k) | encode_4bit_rd(rd);
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_INST_IMM(inst, LDI, rd, k);
+}
+
+TEST_F(DecoderImmOps, LDI_pos) {
+	code = LDI_code;
+	rd = 0x5;
+	k = 0x55;
+	code |= encode_k(k) | encode_4bit_rd(rd);
+	decodeInstruction(&inst, &code);
+	rd |= 0x10;
+	EXPECT_INST_IMM(inst, LDI, rd, k);
+}
+
+uint16_t LDS_code = 0x9000;
+
+TEST_F(DecoderDataOps, LDS_zero) {
+	uint16_t code[2];
+	code[0] = LDS_code;
+	rd = 0;
+	al = 0x0000;
+	code[1] = al;
+	code[0] |= encode_rd(rd);
+	decodeInstruction(&inst, code);
+	EXPECT_INST_ONE_AL(inst, LDS, rd, al);
+}
+
+TEST_F(DecoderDataOps, LDS_num_1) {
+	uint16_t code[2];
+	code[0] = LDS_code;
+	rd = 0xA;
+	al = 0xA596;
+	code[1] = al;
+	code[0] |= encode_rd(rd);
+	decodeInstruction(&inst, code);
+	EXPECT_INST_ONE_AL(inst, LDS, rd, al);
+}
+
+TEST_F(DecoderDataOps, LDS_num_2) {
+	uint16_t code[2];
+	code[0] = LDS_code;
+	rd = 0x15;
+	al = 0x5A69;
+	code[1] = al;
+	code[0] |= encode_rd(rd);
+	decodeInstruction(&inst, code);
+	EXPECT_INST_ONE_AL(inst, LDS, rd, al);
+}
+
+uint16_t LD_code = 0x9000;
+
+TEST_F(DecoderDataOps, LD_RX_1) {
+	code = LD_code | 0xC; //RX
+	rd = 0;
+	mode = 1;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RX, mode);
+}
+
+TEST_F(DecoderDataOps, LD_RX_2) {
+	code = LD_code | 0xC; //RX
+	rd = 0x06;
+	mode = 2;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RX, mode);
+}
+
+TEST_F(DecoderDataOps, LD_RX_3) {
+	code = LD_code | 0xC; //RX
+	rd = 0x19;
+	mode = 3;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RX, mode);
+}
+
+TEST_F(DecoderDataOps, LD_RY_2) {
+	code = LD_code | 0x8; //RY
+	rd = 0x06;
+	mode = 2;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RY, mode);
+}
+
+TEST_F(DecoderDataOps, LD_RY_3) {
+	code = LD_code | 0x8; //RY
+	rd = 0x19;
+	mode = 3;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RY, mode);
+}
+
+TEST_F(DecoderDataOps, LD_RZ_2) {
+	code = LD_code; //RZ
+	rd = 0x06;
+	mode = 2;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RZ, mode);
+}
+
+TEST_F(DecoderDataOps, LD_RZ_3) {
+	code = LD_code; //RZ
+	rd = 0x19;
+	mode = 3;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, LD, rd, RZ, mode);
+}
+
+uint16_t LDD_code = 0x8000;
+
+TEST_F(DecoderDataOps, LDD_zero) {
+	code = LDD_code;
+	rd = 0;
+	q = 0;
+	code |= encode_rd(rd) | encode_q(q);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_Q(inst, LDD, rd, q);
+}
+
+TEST_F(DecoderDataOps, LDD_num_1) {
+	code = LDD_code;
+	rd = 0x1A;
+	q = 0x26;
+	code |= encode_rd(rd) | encode_q(q);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_Q(inst, LDD, rd, q);
+}
+
+TEST_F(DecoderDataOps, LDD_num_2) {
+	code = LDD_code;
+	rd = 0x05;
+	q = 0x19;
+	code |= encode_rd(rd) | encode_q(q);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_Q(inst, LDD, rd, q);
+}
+
+uint16_t STS_code = 0x9200;
+
+TEST_F(DecoderDataOps, STS_zero) {
+	uint16_t code[2];
+	code[0] = STS_code;
+	rd = 0;
+	al = 0x0000;
+	code[1] = al;
+	code[0] |= encode_rd(rd);
+	decodeInstruction(&inst, code);
+	EXPECT_INST_ONE_AL(inst, STS, rd, al);
+}
+
+TEST_F(DecoderDataOps, STS_num_1) {
+	uint16_t code[2];
+	code[0] = STS_code;
+	rd = 0xA;
+	al = 0xA596;
+	code[1] = al;
+	code[0] |= encode_rd(rd);
+	decodeInstruction(&inst, code);
+	EXPECT_INST_ONE_AL(inst, STS, rd, al);
+}
+
+TEST_F(DecoderDataOps, STS_num_2) {
+	uint16_t code[2];
+	code[0] = STS_code;
+	rd = 0x15;
+	al = 0x5A69;
+	code[1] = al;
+	code[0] |= encode_rd(rd);
+	decodeInstruction(&inst, code);
+	EXPECT_INST_ONE_AL(inst, STS, rd, al);
+}
+
+uint16_t ST_code = 0x9200;
+
+TEST_F(DecoderDataOps, ST_RX_1) {
+	code = ST_code | 0xC; //RX
+	rd = 0;
+	mode = 1;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RX, mode);
+}
+
+TEST_F(DecoderDataOps, ST_RX_2) {
+	code = ST_code | 0xC; //RX
+	rd = 0x06;
+	mode = 2;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RX, mode);
+}
+
+TEST_F(DecoderDataOps, ST_RX_3) {
+	code = ST_code | 0xC; //RX
+	rd = 0x19;
+	mode = 3;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RX, mode);
+}
+
+TEST_F(DecoderDataOps, ST_RY_2) {
+	code = ST_code | 0x8; //RY
+	rd = 0x06;
+	mode = 2;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RY, mode);
+}
+
+TEST_F(DecoderDataOps, ST_RY_3) {
+	code = ST_code | 0x8; //RY
+	rd = 0x19;
+	mode = 3;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RY, mode);
+}
+
+TEST_F(DecoderDataOps, ST_RZ_2) {
+	code = ST_code; //RZ
+	rd = 0x06;
+	mode = 2;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RZ, mode);
+}
+
+TEST_F(DecoderDataOps, ST_RZ_3) {
+	code = ST_code; //RZ
+	rd = 0x19;
+	mode = 3;
+	code |= encode_mode(mode) | encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_DATA(inst, ST, rd, RZ, mode);
+}
+
+uint16_t STD_code = 0x8200;
+
+TEST_F(DecoderDataOps, STD_zero) {
+	code = STD_code;
+	rd = 0;
+	q = 0;
+	code |= encode_rd(rd) | encode_q(q);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_Q(inst, STD, rd, q);
+}
+
+TEST_F(DecoderDataOps, STD_num_1) {
+	code = STD_code;
+	rd = 0x1A;
+	q = 0x26;
+	code |= encode_rd(rd) | encode_q(q);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_Q(inst, STD, rd, q);
+}
+
+TEST_F(DecoderDataOps, STD_num_2) {
+	code = STD_code;
+	rd = 0x05;
+	q = 0x19;
+	code |= encode_rd(rd) | encode_q(q);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_Q(inst, STD, rd, q);
+}
+
+uint16_t LPM_code = 0x95C8;
+
+TEST_F(DecoderDataOps, LPM_1) {
+	code = LPM_code;
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_BASIC(inst, LPM);
+	EXPECT_EQ(1, inst.mode);
+}
+
+uint16_t LPM_EX_code = 0x9004;
+
+TEST_F(DecoderDataOps, LPM2_num_zero) {
+	code = LPM_EX_code; // Mode ii
+	rd = 0;
+	mode = 2;
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+}
+
+TEST_F(DecoderDataOps, LPM2_num_1) {
+	code = LPM_EX_code; // Mode ii
+	rd = 0x19;
+	mode = 2;
+	code |= encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+}
+
+TEST_F(DecoderDataOps, LPM2_num_2) {
+	code = LPM_EX_code; // Mode ii
+	rd = 0x06;
+	mode = 2;
+	code |= encode_rd(rd);
+	decodeInstruction(&inst, &code);
+	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
 }

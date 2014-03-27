@@ -41,20 +41,19 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	unsigned int top8 = opcode >> 8;
 	unsigned int top7 = opcode >> 9;
 	unsigned int top6 = opcode >> 10;
-	unsigned int top5 = opcode >> 11;
 	unsigned int top4 = opcode >> 12;
-	unsigned int low8 = opcode & 0xFF;
-	unsigned int low4 = opcode & 0x0F;
 	unsigned int swap;
 	// NOP
 	if (opcode == 0) {
 		inst->op = NOP;
 	}
 	// MOVW
-	else if (top8 == 0x1) {
+	else if ((opcode & 0xFF00) == 0x0100) {
 		inst->op = MOVW;
-		inst->D &= 0x0F;
-		inst->K &= 0x0F;
+		inst->D &= 0xF;
+		inst->R &= 0xF;
+		inst->D <<= 1; // Restrictred registers
+		inst->R <<= 1; // Taken in pairs
 	}
 	// Signed and fractional multiply
 	else if ((opcode & 0xFE00) == 0x0200) {
@@ -96,7 +95,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	}
 	// 2-operand instructions
 	// CPC
-	else if (top6 == 0x01) {
+	else if ((opcode & 0xFC00) == 0x0400) {
 		inst->op = CPC;	
 	}
 	// ADD
@@ -136,14 +135,14 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->op = OR;
 	}
 	// MOV
-	else if ((opcode & 0xFC00) == 0x3400) {
+	else if ((opcode & 0xFC00) == 0x2C00) {
 		inst->op = MOV;
 	}
 	// Register-immediate instructions
 	// CPI
-	else if (top4 == 0x3) {
+	else if ((opcode & 0xF000) == 0x3000) {
 		inst->op = CPI;
-		inst->D &= 0x0F;
+		inst->D |= 0x10;
 	}
 	// SBCI
 	else if (top4 == 0x4) {
@@ -166,48 +165,43 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->D |= 0x10;	// Restricted register 16 ≤ rd ≤ 31
 	}
 	// LDD and STD
-	else if ((top4 & 0xD) == 0x8) {
-		inst->K = (opcode & 0x7) | ((opcode >> 7) & 0x18)
-			| ((opcode >> 8) & 0x20);
-		inst->ireg = (low8 & 0x08) ? RY : RZ;
+	else if ((opcode & 0xD008) == 0x8000) {
+		inst->K = (opcode & 0x7) | ((opcode & 0xC00) >> 7)
+			| ((opcode & 0x2000) >> 8);
+		inst->ireg = (opcode & 0x08) ? RY : RZ;
 		swap = (opcode >> 9) & 0x01;
-		// LDD
-		if (swap == 0) {
-			inst->op = LDD;
-		}
-		// STD
-		else {
-			inst->op = STD;
-		}
+		// LDD and STD
+		inst->op = (swap) ? STD : LDD;
 	}
 	// LDS and STS
 	// Note that this is specificially the LDS
 	// and STS not used by the ATtiny10 and similar
 	// devices.
-	else if (top6 == 0x24 && low4 == 0x0) {
-		inst->op = (top7 & 0x01) ? ST : LD;
+	else if ((opcode & 0xFC0F) == 0x9000) {
+		inst->op = (opcode & 0x0200) ? STS : LDS;
+		inst->AL = *(opcode_p + 1);
+		inst->wsize = 2;
 	}
 	// PUSH and POP
-	else if (top6 == 0x24 && low4 == 0xF) {
-		inst->op = (top7 & 0x01) ? PUSH : POP;
+	else if ((opcode & 0xFC0F) == 0x900F) {
+		inst->op = (opcode & 0x0200) ? PUSH : POP;
 	}
 	// LD and ST
 	// Also LAC/LAS/LAT/XCH for XMEGA
 	// This Opcode must come after LDS/STS and PUSH/POP
 	// To prevent matching their codes.
-	else if (top7 == 0x24) {
-		inst->mode = low8 & 0x03;
-		inst->op = (top7 & 0x01) ? ST : LD;
+	else if ((opcode & 0xFC00) == 0x9000) {
+		inst->mode = ((opcode) & 0x03) + 1;
+		inst->op = (opcode & 0x0200) ? ST : LD;
 		swap = (opcode >> 2) & 0x03;
 		switch(swap) {
 		case 0: // RZ 
 			inst->ireg = RZ;
-			if ((opcode & 0x0F) == 0) 
 			break;
 		case 1: // Weird XMEGA OPCODE and LPM and ELPM modes ii-iii
 			// Override ST/LD
-			if (inst->op == LD)
-				switch(inst->mode) {
+			if (inst->op == LD) {
+				switch(opcode & 0x3) {
 					case 0: // LPM (ii)
 						inst->op = LPM;
 						inst->mode = 2;
@@ -225,7 +219,8 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 						inst->mode = 3;
 						break;
 				}
-			else
+			}
+			else {
 #ifdef XMEGA_SUPPORTED
 				switch(inst->mode) {
 				case 0: // XCH
@@ -243,10 +238,11 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 				}
 #else
 				inst->op = ILLOP;
-#ifdef DEBUG
+	#ifdef DEBUG
 				decoderIllop("XMEGA specific opcodes");
-#endif // DEBUG
+	#endif // DEBUG
 #endif // XMEGA_SUPPORTED
+			}
 			break;
 		case 2: // RY
 			inst->ireg = RY;
@@ -257,8 +253,8 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		} 
 	}
 	// 1-Operand Instructions
-	else if (top7 == 0x4A && (opcode & 0x08) == 0) {
-		swap = opcode & 0x0F;
+	else if ((opcode & 0xFE08) == 0x9400) {
+		swap = opcode & 0x07;
 		switch (swap) {
 		case 0: // COM
 			inst->op = COM;
@@ -289,7 +285,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		}
 	}
 	// SEx and CLx
-	else if (top8 == 0x94 && low4 == 0x8) {
+	else if ((opcode & 0xFF0F) == 0x9408) {
 		// The SEx and CLx commands are defined such
 		// that they are an offset of the opcode
 		// Use special SEx and CLx definitions
@@ -298,7 +294,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->R = (opcode >> 4) & 0x07;
 	}
 	// Misc Instructions
-	else if (top8 == 0x95 && low4 == 0x8) {
+	else if ((opcode & 0xFF0F) == 0x9508) {
 		swap = (opcode >> 4) & 0x0F;
 		switch(swap) {
 		case 0: // RET
@@ -356,7 +352,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->op = IJMP;
 	}
 	// RJMP
-	else if (top4 == 0xC) {
+	else if ((opcode & 0xF000) == 0xC000) {
 		inst->op = RJMP;
 		inst->A = opcode & 0x0FFF;
 #if IS_ARITHMETIC_RS
@@ -370,9 +366,12 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 #endif
 	}
 	// CALL
-	else if (top7 == 0x4A && (low8 & 0x0E) == 0x0D) {
+	else if ((opcode & 0xFE0E) == 0x940E) {
 		inst->op = CALL;
-		inst->A = (opcode & 0x01) & ((opcode >> 3) & 0x3E);
+		inst->AL = (opcode & 0x01) | ((opcode & 0x01F0) >> 3);
+		inst->AL = inst->AL << 16;
+		inst->AL |= *(opcode_p + 1);	// Use next word
+		inst->wsize = 2;
 	}
 	// EICALL
 	else if (opcode == 0x9519) {
@@ -383,7 +382,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->op = ICALL;
 	}
 	// RCALL
-	else if (top4 == 0xD) {
+	else if ((opcode & 0xF000) == 0xD000) {
 		inst->op = RCALL;
 		inst->A = opcode & 0x0FFF;
 #if IS_ARITHMETIC_RS
@@ -448,9 +447,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		}
 	}
 	// I/O Bit Operations
-	else if (top6 == 0x26) {
+	else if ((opcode & 0xFC00) == 0x9800) {
 		// Uses R for bit index
-		swap = top8 & 0x03;
+		swap = (opcode >> 8) & 0x03;
 		inst->A = (opcode >> 3) & 0x1F;
 		inst->R &= 0x7;
 		switch(swap) {
@@ -481,13 +480,13 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	else if (top4 == 0xE) {
 		// Uses D as h bits
 		inst->op = LDI;
-		inst->D &= 0x0F;
+		inst->D |= 0x10;
 	}
 	// SREG Conditional Branches
-	else if (top5 == 0x1E) {
+	else if ((opcode & 0xF800) == 0xF000) {
 		inst->op = BRx;
 		inst->R &= 0x07;
-		inst->D &= (~(opcode >> 10)) & 0x01;
+		inst->D = (~(opcode >> 10)) & 0x01;	// Set if branch when set
 		inst->K = (opcode >> 2) & 0xFF;	// Line up sign bit with MSB
 #if IS_ARITHMETIC_RS
 		inst->K = inst->K >> 1;			// Perform arithmetic shift
@@ -503,8 +502,8 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->R &= 0x07;
 	}
 	// SBRC and SBRS
-	else if (top6 == 0x3F && (opcode & 0x08) == 0) {
-		inst->op = (top7 & 0x01) ? SBRS : SBRC;
+	else if ((opcode & 0xFC00) == 0xFC00) {
+		inst->op = (opcode & 0x0200) ? SBRS : SBRC;
 		inst->R &= 0x07;
 	}
 	else {
