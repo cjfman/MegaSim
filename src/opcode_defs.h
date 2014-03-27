@@ -57,7 +57,7 @@
 #define SBIS	31
 #define BRx	32	// Covers all SREG conditional branches
 #define BRBS	32	// Covered by the specific conditional branches
-#define BRBC	33	// This one too. ADD borrows 33 for it's code.
+#define BRBC	33	// This one too. ADD borrows 33 for its code.
 #define BREQ	34
 #define BRNE	35
 #define BRCS	36

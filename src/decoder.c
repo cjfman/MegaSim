@@ -289,8 +289,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		// The SEx and CLx commands are defined such
 		// that they are an offset of the opcode
 		// Use special SEx and CLx definitions
-		inst->op = (inst->D & 0x80) ? CLx : SEx;
-		inst->D = (~(inst->D >> 3)) & 0x01;
+		inst->op = (opcode & 0x80) ? CLx : SEx;
 		inst->R = (opcode >> 4) & 0x07;
 	}
 	// Misc Instructions
@@ -472,9 +471,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->op = MUL;
 	}
 	// IN/OUT
-	else if (top4 == 0xB) {
+	else if ((opcode & 0xF000) == 0xB000) {
 		inst->op = (opcode & 0x0800) ? OUT : IN;
-		inst->A = (opcode & 0x0F)  & ((opcode >> 5) & 0x03);
+		inst->A = (opcode & 0x0F) | ((opcode & 0x0600) >> 5);
 	}
 	// LDI
 	else if (top4 == 0xE) {
