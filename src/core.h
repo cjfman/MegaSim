@@ -1,4 +1,4 @@
-// Core.h
+// core.h
 
 // Developed by Charles Franklin
 //
@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include "devices.h"
+#include "decoder.h"
 
 // MACROS
 #define GETBIT(var, index) ((var >> index) 0x01)
@@ -49,10 +50,11 @@ uint8_t *io_mem;
 // Program Memory
 typedef struct Program {
     uint16_t *data;
-    int size;
+	Instruction *instructions;
+    unsigned int size;	// In words
 } Program;
 
-Program *prog_mem;
+Program *program;
 
 // Indirect Registers and Poiners
 extern uint16_t *RW;	// R25:R24
@@ -68,4 +70,10 @@ uint32_t *SP;
 
 coreType core;
 
-#endif
+/////////////////////////
+// Main Control Function
+/////////////////////////
+
+int runAVR(void);
+
+#endif // CORE_h

@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include "opcode_defs.h"
 #include "decoder.h"
+#include "core.h"
 
 uint16_t encode_rd(uint16_t rd) {
 	return (rd & 0x1F) << 4;

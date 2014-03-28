@@ -7,13 +7,152 @@
 
 #include "handlers.h"
 
-#error BRx not implemented
-#error BREAK not implemented
-#error xCALL not implemented
-#error xJMP not implemented
-#error CPSE not implemented
-#error xLPM not implemented
-#error IO not implemented
+#warning BRx not implemented
+#warning BREAK not implemented
+#warning xCALL not implemented
+#warning xJMP not implemented
+#warning CPSE not implemented
+#warning error xLPM not implemented
+#warning IO not implemented
+
+int (*handlers[NUM_CODES])(Instruction*) = {
+	unhandled_run,	// 0
+	ADC_run,	// 1
+	SUB_run,	// 2
+	SUBI_run,	// 3
+	SBC_run,	// 4
+	SBCI_run,	// 5
+	AND_run,	// 6
+	ANDI_run,	// 7
+	OR_run,		// 8
+	ORI_run,	// 9
+	EOR_run,	// 10
+	COM_run,	// 11
+	NEG_run,	// 12
+	unhandled_run,	// 13
+	unhandled_run,	// 14
+	INC_run,	// 15
+	DEC_run,	// 16
+	unhandled_run,	// 17
+	unhandled_run,	// 18
+	unhandled_run,	// 19
+	RJMP_run,	// 20
+	RCALL_run,	// 21
+	RET_run,	// 22
+	RETI_run,	// 23
+	CPSE_run,	// 24
+	CP_run,	// 25
+	CPC_run,	// 26
+	CPI_run,	// 27
+	SBRC_run,	// 28
+	SBRS_run,	// 29
+	SBIC_run,	// 30
+	SBIS_run,	// 31
+	BRx_run,	// 32
+	ADD_run,	// 33
+	unhandled_run,	// 34
+	unhandled_run,	// 35
+	unhandled_run,	// 36
+	unhandled_run,	// 37
+	unhandled_run,	// 38
+	unhandled_run,	// 39
+	unhandled_run,	// 40
+	unhandled_run,	// 41
+	unhandled_run,	// 42
+	unhandled_run,	// 43
+	unhandled_run,	// 44
+	unhandled_run,	// 45
+	unhandled_run,	// 46
+	unhandled_run,	// 47
+	unhandled_run,	// 48
+	unhandled_run,	// 49
+	unhandled_run,	// 50
+	unhandled_run,	// 51
+	LD_run,	// 52
+	ST_run,	// 53
+	MOV_run,	// 54
+	LDI_run,	// 55
+	IN_run,	// 56
+	OUT_run,	// 57
+	LPM_run,	// 58
+	SBI_run,	// 59
+	CBI_run,	// 60
+	LSL_run,	// 61
+	LSR_run,	// 62
+	ROL_run,	// 63
+	ROR_run,	// 64
+	ASR_run,	// 65
+	SWAP_run,	// 66
+	unhandled_run,	// 67
+	unhandled_run,	// 68
+	BST_run,	// 69
+	BLD_run,	// 70
+	SEx_run,	// 71
+	CLx_run,	// 72
+	unhandled_run,	// 73
+	unhandled_run,	// 74
+	unhandled_run,	// 75
+	unhandled_run,	// 76
+	unhandled_run,	// 77
+	unhandled_run,	// 78
+	unhandled_run,	// 79
+	unhandled_run,	// 80
+	unhandled_run,	// 81
+	unhandled_run,	// 82
+	unhandled_run,	// 83
+	unhandled_run,	// 84
+	unhandled_run,	// 85
+	unhandled_run,	// 86
+	NOP_run,	// 87
+	SLEEP_run,	// 88
+	WDR_run,	// 89
+	ADIW_run,	// 90
+	SBIW_run,	// 91
+	IJMP_run,	// 92
+	ICALL_run,	// 93
+	LDD_run,	// 94
+	LDS_run,	// 95
+	STD_run,	// 96
+	STS_run,	// 97
+	PUSH_run,	// 98
+	POP_run,	// 99
+	JMP_run,	// 100
+	CALL_run,	// 101
+	ELPM_run,	// 102
+	MUL_run,	// 103
+	MULS_run,	// 104
+	MULSU_run,	// 105
+	FMUL_run,	// 106
+	FMULS_run,	// 107
+	FMULSU_run,	// 108
+	MOVW_run,	// 109
+	unhandled_run,	// 110
+	SPM_run,	// 111
+	BREAK_run,	// 112
+	EIJMP_run,	// 113
+	EICALL_run,	// 114
+#ifdef XMEGA_SUPPORTED
+	DES_run,	// 115
+	XCH_run,	// 116
+	LAS_run,	// 117
+	LAC_run,	// 118
+	LAT_run,	// 119
+#else
+	unhandled_run,	// 115
+	unhandled_run,	// 116
+	unhandled_run,	// 117
+	unhandled_run,	// 118
+	unhandled_run,	// 119
+#endif
+	unhandled_run,	// 120
+	unhandled_run,	// 121
+	unhandled_run,	// 122
+	unhandled_run,	// 123
+	unhandled_run,	// 124
+	unhandled_run,	// 125
+	unhandled_run,	// 126
+	unhandled_run	// 127
+};
 
 /////////////////////////////////
 // Instruction Implementations
@@ -40,6 +179,10 @@
 #define CALC_Z sreg[ZREG] = (res == 0);
 #define CALC_S sreg[SREG] = (sreg[NREG]^sreg[VREG]) & 0x01;
 
+
+int unhandled_run(Instruction *inst) {
+	return 1;
+}
 
 ////// Arithmetic and Logic Instructions ////////////////
 
@@ -202,7 +345,7 @@ int SBIW_run(Instruction *inst) {
 	sreg[CREG] = (res15 && !rdh7);
 	CALC_S;
 	// Save result
-	*ireg->ireg = res;
+	*inst->ireg = res;
 	return 0;
 }
 
@@ -218,7 +361,7 @@ int AND_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return;
+	return 0;
 }
 
 // Logical AND with Immediate
@@ -280,6 +423,8 @@ int EOR_run(Instruction *inst) {
 
 int COM_run(Instruction *inst) {
 	uint8_t res = ~regs[inst->D];
+	// GET BITS
+	GET_RES7
 	// Calculate sreg
 	sreg[VREG] = 0;
 	CALC_N;
@@ -297,6 +442,7 @@ int NEG_run(Instruction *inst) {
 	// Get bits
 	GET_RD3
 	GET_RES3;
+	GET_RES7;
 	// Calculate sreg
 	sreg[HREG] = (res3 | rd3);
 	sreg[VREG] = (res == 0x80);
@@ -373,7 +519,7 @@ int MULS_run(Instruction *inst) {
 	}
 #endif
 	int16_t res = opL * opR;
-	bool bit = (res >> 15) 0x01;
+	bool bit = (res >> 15) & 0x01;
 	// Calculate sreg
 	sreg[CREG] = bit;
 	CALC_Z;
@@ -395,7 +541,7 @@ int MULSU_run(Instruction *inst) {
 	}
 #endif
 	int16_t res = opL * opR;
-	bool bit = (res >> 15) 0x01;
+	bool bit = (res >> 15)  & 0x01;
 	// Calculate sreg
 	sreg[CREG] = bit;
 	CALC_Z;
@@ -433,7 +579,7 @@ int FMULS_run(Instruction *inst) {
 	}
 #endif
 	int16_t res = opL * opR;
-	bool bit = (res >> 15) 0x01;
+	bool bit = (res >> 15) & 0x01;
 	res >>= 1;
 	// Calculate sreg
 	sreg[CREG] = bit;
@@ -456,7 +602,7 @@ int FMULSU_run(Instruction *inst) {
 	}
 #endif
 	int16_t res = opL * opR;
-	bool bit = (res >> 15) 0x01;
+	bool bit = (res >> 15) & 0x01;
 	res >>= 1;
 	// Calculate sreg
 	sreg[CREG] = bit;
@@ -474,8 +620,8 @@ int DES_run(Instruction *inst);
 // Relative Jump
 int RJMP_run(Instruction *inst) {
 	pc += inst->A;	// Plus one handled globally
-	if (pc + 1 >= prog_mem->size) {
-		error_value = pc;
+	if (pc + 1 >= program->size) {
+		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
 	return 0;
@@ -484,8 +630,8 @@ int RJMP_run(Instruction *inst) {
 // Indirect Jump
 int IJMP_run(Instruction *inst) {
 	pc = *RZ;
-	if (pc >= prog_mem->size) {
-		error_value = pc;
+	if (pc >= program->size) {
+		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
 	pc--; 	// Correct for global increment
@@ -497,8 +643,8 @@ int EIJMP_run(Instruction *inst) {
 	pc = *RZ;
 	pc &= 0xFF;
 	pc |= *EIND << 8;
-	if (pc >= prog_mem->size) {
-		error_value = pc;
+	if (pc >= program->size) {
+		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
 	pc--;	// Correct for global increment
@@ -508,8 +654,8 @@ int EIJMP_run(Instruction *inst) {
 // Jump
 int JMP_run(Instruction *inst) {
 	pc = inst->AL;
-	if (pc >= prog_mem->size) {
-		error_value = pc;
+	if (pc >= program->size) {
+		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
 	pc--;	// Correct for global increment
@@ -518,17 +664,17 @@ int JMP_run(Instruction *inst) {
 
 int RCALL_run(Instruction *inst) {
 	pc += inst->A; 	// Plus one handled by global increment
-	if (pc >= prog_mem->size) {
-		error_value = pc;
+	if (pc >= program->size) {
+		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
-	if (core->pc_size == 22) {
+	if (core.pc_size == 22) {
 		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
 	}
 	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
 	main_mem[(*SP)--] = pc & 0xFF;
-	if (*SP >= core->mem_size) {
-		error_value = *SP;
+	if (*SP >= core.mem_size) {
+		error_val = *SP;
 		return SP_ERROR;
 	}
 	return 0;	
@@ -538,26 +684,24 @@ int EICALL_run(Instruction *inst) {
 	pc = *RZ;
 	pc &= 0xFF;
 	pc |= *EIND << 8;
-	if (pc >= prog_mem->size) {
-		error_value = pc;
+	if (pc >= program->size) {
+		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
 	pc--;	// Correct for global increment
-	if (core->pc_size == 22) {
+	if (core.pc_size == 22) {
 		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
 	}
 	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
 	main_mem[(*SP)--] = pc & 0xFF;
-	if (*SP >= core->mem_size) {
-		error_value = *SP;
+	if (*SP >= core.mem_size) {
+		error_val = *SP;
 		return SP_ERROR;
 	}
 	return 0;	
 }
 
-int ICALL_run(Instruction *inst) {
-}
-
+int ICALL_run(Instruction *inst);
 int CALL_run(Instruction *inst);
 int RET_run(Instruction *inst);
 int RETI_run(Instruction *inst);
@@ -567,12 +711,13 @@ int SBIC_run(Instruction *inst);
 int SBIS_run(Instruction *inst);
 
 int CP_run(Instruction *inst) {
-	uint8_t = regs[inst->D] - regs[inst->R];
+	uint8_t res = regs[inst->D] - regs[inst->R];
 	// Get bits
 	GET_RD3;
 	GET_RD7;
 	GET_RR3;
 	GET_RR7;
+	GET_RES3;
 	GET_RES7;
 	// Calculate sreg
 	sreg[HREG] = (!rd3 && rr3) || (rr3 && res3) || (res3 && !rd3);
@@ -585,12 +730,13 @@ int CP_run(Instruction *inst) {
 }
 
 int CPC_run(Instruction *inst) {
-	uint8_t = regs[inst->D] - regs[inst->R] - sreg[CREG];
+	uint8_t res = regs[inst->D] - regs[inst->R] - sreg[CREG];
 	// Get bits
 	GET_RD3;
 	GET_RD7;
 	GET_RR3;
 	GET_RR7;
+	GET_RES3;
 	GET_RES7;
 	// Calculate sreg
 	sreg[HREG] = (!rd3 && rr3) || (rr3 && res3) || (res3 && !rd3);
@@ -603,13 +749,16 @@ int CPC_run(Instruction *inst) {
 }
 
 int CPI_run(Instruction *inst) {
-	uint8_t = regs[inst->D] - regs[inst->K];
+	uint8_t res = regs[inst->D] - regs[inst->K];
 	// Get bits
 	GET_RD3;
 	GET_RD7;
-	GET_RR3;
-	GET_RR7;
+	//GET_RR3;
+	//GET_RR7;
+	GET_RES3;
 	GET_RES7;
+	GET_K3;
+	GET_K7;
 	// Calculate sreg
 	sreg[HREG] = (!rd3 && k3) || (k3 && res3) || (res3 && !rd3);
 	sreg[VREG] = (rd7 && !k7 && res7) || (!rd7 && k7 && res7);
@@ -682,9 +831,9 @@ int LSR_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] >> 1;
 	// Get bits
 	GET_RD0;
-	GET_RD3;
-	GET_RD7;
-	GET_RES7;
+	//GET_RD3;
+	//GET_RD7;
+	//GET_RES7;
 	// Calculate sreg
 	sreg[NREG] = 0;
 	CALC_Z;
@@ -705,7 +854,8 @@ int ASR_run(Instruction *inst) {
 	res |= regs[inst->D] & 0x80;		// Calc sign bit
 	// Get bits
 	GET_RD0;
-	GET_RD7
+	//GET_RD7;
+	GET_RES7;
 	// Calc sreg
 	CALC_N;
 	CALC_Z;
@@ -740,10 +890,10 @@ int BST_run(Instruction *inst) {
 int BLD_run(Instruction *inst) {
 	bool set = (sreg[TREG] >> 6) & 0x01;
 	if (set) {
-		bitregs[inst->D] |= 0x01 << inst->R;
+		regs[inst->D] |= 0x01 << inst->R;
 	}
 	else {
-		bitregs[inst->D] &= ~(0x01 << inst->R;);
+		regs[inst->D] &= ~(0x01 << inst->R);
 	}
 	return 0;
 }

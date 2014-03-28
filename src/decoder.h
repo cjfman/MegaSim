@@ -12,8 +12,6 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
-#include "core.h"
-#include "devices.h"
 
 #define IS_ARITHMETIC_RS (-2 >> 1 == -1)
 
@@ -24,7 +22,7 @@ extern "C" {
 // Stores decoded instructions
 typedef struct Instuction {
 	uint8_t op;		// The basic operation
-	uint8_t R;		// The source register. Sometimes SREG bit index. 
+	uint8_t R;		// The source register. Sometimes bit index. 
 	uint8_t D;		// The destination/source register. Sometimes bit value.
 	uint8_t mode;	// Mode of the operation
 	int16_t A;		// Address and offset
@@ -32,13 +30,14 @@ typedef struct Instuction {
 	int8_t K;		// Constant
 	uint16_t *ireg;	// Indirect register
 	uint8_t wsize;	// The size in words of the instruction
+	uint8_t cycles;	// The number of cycles the instruction takes
 } Instruction;
 
 // Make a new blank instruction
 void makeBlankInstruction(Instruction *inst);
 
 // Decodes instructions
-void decodeInstruction(Instruction *inst, uint16_t *opcode);
+void decodeInstruction(Instruction *inst, uint16_t *opcode_p);
 
 
 /////////////////////////////////////

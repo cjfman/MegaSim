@@ -12,7 +12,6 @@ extern "C" {
 
 #include <stdio.h>
 #include <inttypes.h>
-#include "bool.h"
 #include "core.h"
 
 //////////////////

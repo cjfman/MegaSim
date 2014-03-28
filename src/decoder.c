@@ -7,6 +7,7 @@
 
 #include "decoder.h"
 #include "opcode_defs.h"
+#include "core.h"
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -24,6 +25,7 @@ void makeBlankInstruction(Instruction *inst) {
 	inst->K = 0;
 	inst->ireg = 0;
 	inst->wsize = 1;
+	inst->cycles = 1;
 }
 
 void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {

@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 	// Parse arguments
 	error = parseArgs(argc, argv, &args);
 	if (error) return 1;
-	Program *program = loadData(&args);
+	program = loadData(&args);
 	if (!program) {
 		return 1;
 	}
@@ -63,10 +63,11 @@ Program* loadBinFile(const char* path) {
 		fprintf(stderr, "Error: file '%s' does not exist\n", path);
 		return NULL;
 	}
-	int size = getFileSize(file);
-	program->size = size/2;
+	int size = getFileSize(file) / 2; 	// Size in 16 bit words
 	// Allocate buffer memory
-	program->data = (uint16_t*)malloc(size);
+	program->size = size;
+	program->data = (uint16_t*)malloc(size*sizeof(uint16_t));
+	program->instructions = (Instructions*)malloc(size*sizeof(Instruction));
 	// Read entire file into buffer
 	fread(program->data, sizeof(char), size, file);
 	fclose(file);
@@ -87,22 +88,23 @@ Program* loadHexFile(const char* path) {
 	// Intex hex file is at least twice the size in bytes
 	// of the program
 	program->data = (uint16_t*)malloc(size/2);
+	program->size = 0;
 	// Load and parse Intel Hex File
 	char *buf = (char*)malloc(size+1);
 	fread(buf, sizeof(char), size, file);
 	buf[size] = '\0';
 	int line = 0;
 	char* pos = strchr(buf, ':');	// The position in the buffer
-	char* next;			// The next position to step to
-	char bytes[256];		// The most number of bytes per line
+	char* next;						// The next position to step to
+	char bytes[256];				// The most number of bytes per line
 	while (pos != NULL) {
 		line++;
 		pos++;
 		next = strchr(pos, ':');	// Find next section
-		if (next) {			// Write null byte
-			*next = '\0';		// To terminate string
+		if (next) {					// Write null byte
+			*next = '\0';			// To terminate string
 		}
-		stripEOL(pos);			// Remove the end of line characters
+		stripEOL(pos);				// Remove the end of line characters
 		int count = strlen(pos);	// and count the hex characters
 		if (count%2 != 0 || !isValidHexString(pos)) {
 			invalidIntelHex(line);
@@ -113,10 +115,11 @@ Program* loadHexFile(const char* path) {
 		}
 		hexToByteArray(bytes, 256, pos);
 		uint8_t byte_count = bytes[0];
+		program->size += byte_count / 2;	// Size in words
 		uint32_t address;
 		char *c = (char*)&address;	// Create a pointer
-		c[0] = bytes[2];	// For the sake of switching address
-		c[1] = bytes[1];	// to little endian
+		c[0] = bytes[2];			// For the sake of switching address
+		c[1] = bytes[1];			// to little endian
 		uint8_t record_type = bytes[3];	
 		uint8_t checksum = bytes[4+byte_count];
 		if (record_type == 1) break;	// End of record reached
@@ -133,7 +136,7 @@ Program* loadHexFile(const char* path) {
 		uint8_t sum = 0;		// Used to calculate checksum
 		for (j = 0; j < byte_count; j++) {
 			char b = bytes[j+4];
-			sum += b;			// Calculate checksum
+			sum += b;								// Calculate checksum
 			((char*)program->data)[address+j] = b;	// Transfer data
 		}
 		sum += bytes[1];		// Add low byte of address
@@ -153,6 +156,8 @@ Program* loadHexFile(const char* path) {
 		pos = next;
 	}
 	free(buf);
+	program->instructions = 
+		(Instruction*)malloc(program->size*sizeof(instruction));
 	fprintf(stderr, "Intel Hex File decoded\n");
 	return program;
 }

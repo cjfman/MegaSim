@@ -24,11 +24,13 @@ USER_DIR = ../src
 
 # Tests
 TESTS = opcode_test.cpp \
-	decoder_tests.cpp
+		decoder_tests.cpp 
+		#handler_tests.cpp
 
 # All of the sources I want compiled
 SRC = decoder.c \
-	  core.c
+	  core.c \
+	  handlers.c
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that

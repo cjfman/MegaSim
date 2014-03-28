@@ -12,9 +12,10 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
-#include "bool.h"
 #include "core.h"
 #include "decoder.h"
+
+#define NUM_CODES 128
 
 // MACROS
 #define GETBIT(var, index) ((var >> index) 0x01)
@@ -25,12 +26,17 @@ extern "C" {
 
 #define MEM_ERROR 0x01
 #define PROG_MEM_ERROR 0x02
+#define SP_ERROR 0x3
 
 int error_val;
 
 //////////////////////////////////
 // Instruction Implementations
 //////////////////////////////////
+
+extern int (*handlers[NUM_CODES])(Instruction*);
+
+int unhandled_run(Instruction *inst);
 
 int ADC_run(Instruction *inst);
 int ADD_run(Instruction *inst);
@@ -155,7 +161,9 @@ int SUBI_run(Instruction *inst);
 int SWAP_run(Instruction *inst);
 //int TST_run(Instruction *inst);
 int WDR_run(Instruction *inst);
+#ifdef XMEGA_SUPPORTED
 int XCH_run(Instruction *inst);
+#endif
 
 /////////////////////////////////////
 // Error Codes
