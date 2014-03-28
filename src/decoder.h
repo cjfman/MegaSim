@@ -37,6 +37,7 @@ typedef struct Instuction {
 void makeBlankInstruction(Instruction *inst);
 
 // Decodes instructions
+void decodeAllInstructions(void);
 void decodeInstruction(Instruction *inst, uint16_t *opcode_p);
 
 

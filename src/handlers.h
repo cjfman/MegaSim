@@ -24,9 +24,16 @@ extern "C" {
 // Error Codes and Vars
 ////////////////////////
 
-#define MEM_ERROR 0x01
-#define PROG_MEM_ERROR 0x02
-#define SP_ERROR 0x3
+// Error codes greater than 1023 mean that the error is
+// unrecoverable
+// All errors are negative
+
+#define MEM_ERROR 		-1
+#define PROG_MEM_ERROR 	-2
+#define SP_ERROR 		-3
+#define BAD_REG_ERROR 	-4
+#define ILLOP_ERROR		-5
+#define UNHANDLED_ERROR -1024
 
 int error_val;
 
@@ -34,55 +41,28 @@ int error_val;
 // Instruction Implementations
 //////////////////////////////////
 
+// Handlers return a positive number representing the change
+// in the program counter, or a negative number if something
+// else needs to happen, like an error.
+
 extern int (*handlers[NUM_CODES])(Instruction*);
 
 int unhandled_run(Instruction *inst);
 
+int ILLOP_run(Instruction *inst);
 int ADC_run(Instruction *inst);
 int ADD_run(Instruction *inst);
 int ADIW_run(Instruction *inst);
 int AND_run(Instruction *inst);
 int ANDI_run(Instruction *inst);
 int ASR_run(Instruction *inst);
-//int BCLR_run(Instruction *inst);
 int BLD_run(Instruction *inst);
 int BRx_run(Instruction *inst);
-//int BRBC_run(Instruction *inst);
-//int BRBS_run(Instruction *inst);
-//int BRCC_run(Instruction *inst);
-//int BRCS_run(Instruction *inst);
 int BREAK_run(Instruction *inst);
-//int BREQ_run(Instruction *inst);
-//int BRGE_run(Instruction *inst);
-//int BRHC_run(Instruction *inst);
-//int BRHS_run(Instruction *inst);
-//int BRID_run(Instruction *inst);
-//int BRIE_run(Instruction *inst);
-//int BRLO_run(Instruction *inst);
-//int BRLT_run(Instruction *inst);
-//int BRMI_run(Instruction *inst);
-//int BRNE_run(Instruction *inst);
-//int BRPL_run(Instruction *inst);
-//int BRSH_run(Instruction *inst);
-//int BRTC_run(Instruction *inst);
-//int BRTS_run(Instruction *inst);
-//int BRVC_run(Instruction *inst);
-//int BRVS_run(Instruction *inst);
-//int BSET_run(Instruction *inst);
 int BST_run(Instruction *inst);
 int CALL_run(Instruction *inst);
 int CBI_run(Instruction *inst);
 int CLx_run(Instruction *inst);
-//int CBR_run(Instruction *inst);
-//int CLC_run(Instruction *inst);
-//int CLH_run(Instruction *inst);
-//int CLI_run(Instruction *inst);
-//int CLN_run(Instruction *inst);
-//int CLR_run(Instruction *inst);
-//int CLS_run(Instruction *inst);
-//int CLT_run(Instruction *inst);
-//int CLV_run(Instruction *inst);
-//int CLZ_run(Instruction *inst);
 int COM_run(Instruction *inst);
 int CP_run(Instruction *inst);
 int CPC_run(Instruction *inst);
@@ -104,9 +84,11 @@ int IJMP_run(Instruction *inst);
 int IN_run(Instruction *inst);
 int INC_run(Instruction *inst);
 int JMP_run(Instruction *inst);
+#ifdef XMEGA_SUPPORTED
 int LAC_run(Instruction *inst);
 int LAS_run(Instruction *inst);
 int LAT_run(Instruction *inst);
+#endif // XMEGA_SUPPORTED
 int LD_run(Instruction *inst);
 int LDD_run(Instruction *inst);
 int LDI_run(Instruction *inst);
@@ -138,17 +120,8 @@ int SBI_run(Instruction *inst);
 int SBIC_run(Instruction *inst);
 int SBIS_run(Instruction *inst);
 int SBIW_run(Instruction *inst);
-//int SBR_run(Instruction *inst);
 int SBRC_run(Instruction *inst);
 int SBRS_run(Instruction *inst);
-//int SEC_run(Instruction *inst);
-//int SEH_run(Instruction *inst);
-//int SEI_run(Instruction *inst);
-//int SEN_run(Instruction *inst);
-//int SER_run(Instruction *inst);
-//int SES_run(Instruction *inst);
-//int SET_run(Instruction *inst);
-//int SEV_run(Instruction *inst);
 int SEx_run(Instruction *inst);
 int SEZ_run(Instruction *inst);
 int SLEEP_run(Instruction *inst);
@@ -159,17 +132,54 @@ int STS_run(Instruction *inst);
 int SUB_run(Instruction *inst);
 int SUBI_run(Instruction *inst);
 int SWAP_run(Instruction *inst);
-//int TST_run(Instruction *inst);
 int WDR_run(Instruction *inst);
 #ifdef XMEGA_SUPPORTED
 int XCH_run(Instruction *inst);
 #endif
 
-/////////////////////////////////////
-// Error Codes
-/////////////////////////////////////
-
-#define BAD_REG 1
+// Repeat Instructions commented here
+//int BCLR_run(Instruction *inst);
+//int BRBC_run(Instruction *inst);
+//int BRBS_run(Instruction *inst);
+//int BRCC_run(Instruction *inst);
+//int BRCS_run(Instruction *inst);
+//int BREQ_run(Instruction *inst);
+//int BRGE_run(Instruction *inst);
+//int BRHC_run(Instruction *inst);
+//int BRHS_run(Instruction *inst);
+//int BRID_run(Instruction *inst);
+//int BRIE_run(Instruction *inst);
+//int BRLO_run(Instruction *inst);
+//int BRLT_run(Instruction *inst);
+//int BRMI_run(Instruction *inst);
+//int BRNE_run(Instruction *inst);
+//int BRPL_run(Instruction *inst);
+//int BRSH_run(Instruction *inst);
+//int BRTC_run(Instruction *inst);
+//int BRTS_run(Instruction *inst);
+//int BRVC_run(Instruction *inst);
+//int BRVS_run(Instruction *inst);
+//int BSET_run(Instruction *inst);
+//int CBR_run(Instruction *inst);
+//int CLC_run(Instruction *inst);
+//int CLH_run(Instruction *inst);
+//int CLI_run(Instruction *inst);
+//int CLN_run(Instruction *inst);
+//int CLR_run(Instruction *inst);
+//int CLS_run(Instruction *inst);
+//int CLT_run(Instruction *inst);
+//int CLV_run(Instruction *inst);
+//int CLZ_run(Instruction *inst);
+//int SBR_run(Instruction *inst);
+//int SEC_run(Instruction *inst);
+//int SEH_run(Instruction *inst);
+//int SEI_run(Instruction *inst);
+//int SEN_run(Instruction *inst);
+//int SER_run(Instruction *inst);
+//int SES_run(Instruction *inst);
+//int SET_run(Instruction *inst);
+//int SEV_run(Instruction *inst);
+//int TST_run(Instruction *inst);
 
 #ifdef __cplusplus
 }

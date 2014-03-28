@@ -10,11 +10,16 @@
 extern "C" {
 #endif
 
-typedef struct coreType {
+// Core Definition
+typedef struct CoreDef {
+	uint8_t type;
 	unsigned int mem_size;		// Size in bytes
+	unsigned int io_mem_size;	// Size in bytes
 	unsigned int prog_mem_size;	// Size in words
 	unsigned int pc_size;		// Size in bits
-} coreType;
+	uint32_t SP_addr;			// The address of the SP in IO space
+	uint32_t EIND_addr;
+} CoreDef;
 
 #ifdef __cplusplus
 }

@@ -34,15 +34,16 @@
 #define IREG 7 // I: Global Interrupt Enable/Disable Flag
 bool sreg[8];
 
-// General Perpose Registers
-uint8_t regs[32];
-extern uint16_t *regps; // Register pairs
 
 // Program Counter
 uint32_t pc;
 
 // Main Memory
 uint8_t *main_mem;
+
+// General Perpose Registers
+uint8_t *regs;
+uint16_t *regps; // Register pairs
 
 // I/O Memory
 uint8_t *io_mem;
@@ -57,18 +58,18 @@ typedef struct Program {
 Program *program;
 
 // Indirect Registers and Poiners
-extern uint16_t *RW;	// R25:R24
-extern uint16_t *RX;	// R27:R26
-extern uint16_t *RY;	// R29:R28
-extern uint16_t *RZ;	// R31:R30
+uint16_t *RW;	// R25:R24
+uint16_t *RX;	// R27:R26
+uint16_t *RY;	// R29:R28
+uint16_t *RZ;	// R31:R30
 uint8_t *EIND;
-uint32_t *SP;
+uint8_t *SP;
 
 ////////////////////////
 // Device Properties
 ////////////////////////
 
-coreType core;
+CoreDef *coredef;
 
 /////////////////////////
 // Main Control Function

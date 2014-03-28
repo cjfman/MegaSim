@@ -16,7 +16,7 @@
 #warning IO not implemented
 
 int (*handlers[NUM_CODES])(Instruction*) = {
-	unhandled_run,	// 0
+	ILLOP_run,	// 0
 	ADC_run,	// 1
 	SUB_run,	// 2
 	SUBI_run,	// 3
@@ -181,10 +181,14 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 
 
 int unhandled_run(Instruction *inst) {
-	return 1;
+	return UNHANDLED_ERROR;
 }
 
 ////// Arithmetic and Logic Instructions ////////////////
+
+int ILLOP_run(Instruction *inst) {
+	return ILLOP_ERROR;
+}
 
 int ADD_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] + regs[inst->R]; 
@@ -204,7 +208,7 @@ int ADD_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Add with Carry
@@ -226,7 +230,7 @@ int ADC_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 	
 // Add Immediate to Word
@@ -244,9 +248,10 @@ int ADIW_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	*inst->ireg = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Subtract
 int SUB_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] - regs[inst->R];
 	// Get bits
@@ -265,9 +270,10 @@ int SUB_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Subtract Immediate
 int SUBI_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] - inst->K;
 	// Get bits
@@ -286,9 +292,10 @@ int SUBI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Subtract with Carry
 int SBC_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] - regs[inst->R] - sreg[CREG];
 	// Get bits
@@ -307,9 +314,10 @@ int SBC_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Subtract with Carry Immediate
 int SBCI_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] - inst->K - sreg[CREG];
 	// Get bits
@@ -328,7 +336,7 @@ int SBCI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Subtract Immediate from Word
@@ -346,10 +354,10 @@ int SBIW_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	*inst->ireg = res;
-	return 0;
+	return inst->wsize;
 }
 
-// Logical AND
+// Bitwise AND
 int AND_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] & regs[inst->R];
 	// Get bits
@@ -361,10 +369,10 @@ int AND_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
-// Logical AND with Immediate
+// Bitwise AND with Immediate
 int ANDI_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] & (uint8_t)inst->K;
 	// Get bits
@@ -376,9 +384,10 @@ int ANDI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Bitwise OR
 int OR_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] | regs[inst->R];
 	// Get bits
@@ -390,9 +399,10 @@ int OR_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Bitwise OR with Immediate
 int ORI_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] | (uint8_t)inst->K;
 	// Get bits
@@ -404,9 +414,10 @@ int ORI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// Bitwise XOR
 int EOR_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] ^ regs[inst->R];
 	// Get bits
@@ -418,9 +429,10 @@ int EOR_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
+// One's Complement
 int COM_run(Instruction *inst) {
 	uint8_t res = ~regs[inst->D];
 	// GET BITS
@@ -433,7 +445,7 @@ int COM_run(Instruction *inst) {
 	CALC_S;
 	// Store result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Two's Complement
@@ -452,7 +464,7 @@ int NEG_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Increment
@@ -467,7 +479,7 @@ int INC_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Decrement
@@ -481,13 +493,13 @@ int DEC_run(Instruction *inst) {
 	CALC_Z;
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Is LDI
 /*int SER_run(Instruction *inst) {
 	regs[inst-D] = 0xFF;
-	return 0;
+	return inst->wsize;
 }*/
 
 // Multiply Unsigned
@@ -499,7 +511,7 @@ int MUL_run(Instruction *inst) {
 	CALC_Z;
 	// Store result
 	regps[0] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Multiply Signed
@@ -524,7 +536,7 @@ int MULS_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Multiply Signed with Unsigned
@@ -546,7 +558,7 @@ int MULSU_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Fractional Multiply Unsigned
@@ -559,7 +571,7 @@ int FMUL_run(Instruction *inst) {
 	CALC_Z;
 	// Store result
 	regps[0] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Fractional Multiply Signed
@@ -585,7 +597,7 @@ int FMULS_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Fractional Multiply Signed with Unsigned
@@ -608,7 +620,7 @@ int FMULSU_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return 0;
+	return inst->wsize;
 }
 
 #ifdef XMEGA_SUPPORTED
@@ -619,7 +631,7 @@ int DES_run(Instruction *inst);
 
 // Relative Jump
 int RJMP_run(Instruction *inst) {
-	pc += inst->A;	// Plus one handled globally
+	pc += inst->A + 1;
 	if (pc + 1 >= program->size) {
 		error_val = pc;
 		return PROG_MEM_ERROR;
@@ -634,7 +646,6 @@ int IJMP_run(Instruction *inst) {
 		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
-	pc--; 	// Correct for global increment
 	return 0;
 }
 
@@ -647,7 +658,6 @@ int EIJMP_run(Instruction *inst) {
 		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
-	pc--;	// Correct for global increment
 	return 0;
 }
 
@@ -658,57 +668,204 @@ int JMP_run(Instruction *inst) {
 		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
-	pc--;	// Correct for global increment
 	return 0;
 }
 
 int RCALL_run(Instruction *inst) {
-	pc += inst->A; 	// Plus one handled by global increment
-	if (pc >= program->size) {
-		error_val = pc;
-		return PROG_MEM_ERROR;
+	// Push old PC+1 to stack
+	pc++;
+	if (coredef->pc_size == 22) {
+		//main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+		*((uint32_t*)&main_mem[*SP - 2]) &= 0xFF000000;
+		*((uint32_t*)&main_mem[*SP - 2]) |= pc & 0x3FFFFF;
+		*SP -= 3;
 	}
-	if (core.pc_size == 22) {
+	else {
+		*((uint16_t*)&main_mem[*SP - 1]) = pc & 0xFFFF;
+		*SP -= 2;
+	}
+	/*if (coredef->pc_size == 22) {
 		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
 	}
 	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
 	main_mem[(*SP)--] = pc & 0xFF;
-	if (*SP >= core.mem_size) {
+	*/
+	if (*SP >= coredef->mem_size) {
 		error_val = *SP;
 		return SP_ERROR;
+	}
+	// Calculate new PC
+	pc += inst->A;
+	if (pc >= program->size) {
+		error_val = pc;
+		return PROG_MEM_ERROR;
 	}
 	return 0;	
 }
 
 int EICALL_run(Instruction *inst) {
+	// Push old PC+1 to stack
+	pc++;
+	if (coredef->pc_size == 22) {
+		//main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+		*((uint32_t*)&main_mem[*SP - 2]) &= 0xFF000000;
+		*((uint32_t*)&main_mem[*SP - 2]) |= pc & 0x3FFFFF;
+		*SP -= 3;
+	}
+	else {
+		*((uint16_t*)&main_mem[*SP - 1]) = pc & 0xFFFF;
+		*SP -= 2;
+	}
+	/*if (coredef->pc_size == 22) {
+		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+	}
+	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
+	main_mem[(*SP)--] = pc & 0xFF;
+	*/
+	if (*SP >= coredef->mem_size) {
+		error_val = *SP;
+		return SP_ERROR;
+	}
+	// Calculate new PC
 	pc = *RZ;
-	pc &= 0xFF;
 	pc |= *EIND << 8;
 	if (pc >= program->size) {
 		error_val = pc;
 		return PROG_MEM_ERROR;
 	}
-	pc--;	// Correct for global increment
-	if (core.pc_size == 22) {
+	return 0;	
+}
+
+int ICALL_run(Instruction *inst) {
+	// Push old PC+1 to stack
+	pc++;
+	if (coredef->pc_size == 22) {
+		//main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+		*((uint32_t*)&main_mem[*SP - 2]) &= 0xFF000000;
+		*((uint32_t*)&main_mem[*SP - 2]) |= pc & 0x3FFFFF;
+		*SP -= 3;
+	}
+	else {
+		*((uint16_t*)&main_mem[*SP - 1]) = pc & 0xFFFF;
+		*SP -= 2;
+	}
+	/*if (coredef->pc_size == 22) {
 		main_mem[(*SP)--] = (pc >> 16) & 0xFF;
 	}
 	main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
 	main_mem[(*SP)--] = pc & 0xFF;
-	if (*SP >= core.mem_size) {
+	*/
+	if (*SP >= coredef->mem_size) {
 		error_val = *SP;
 		return SP_ERROR;
 	}
-	return 0;	
+	// Calculate new PC
+	pc = *RZ;
+	if (pc >= program->size) {
+		error_val = pc;
+		return PROG_MEM_ERROR;
+	}
+	return 0;
 }
 
-int ICALL_run(Instruction *inst);
-int CALL_run(Instruction *inst);
-int RET_run(Instruction *inst);
-int RETI_run(Instruction *inst);
-int SBRC_run(Instruction *inst);
-int SBRS_run(Instruction *inst);
-int SBIC_run(Instruction *inst);
-int SBIS_run(Instruction *inst);
+int CALL_run(Instruction *inst) {
+	// Push old PC+1 to stack
+	pc += 2;
+	if (coredef->pc_size == 22) {
+		//main_mem[(*SP)--] = (pc >> 16) & 0xFF;
+		*((uint32_t*)&main_mem[*SP - 2]) &= 0xFF000000;
+		*((uint32_t*)&main_mem[*SP - 2]) |= pc & 0x3FFFFF;
+		*SP -= 3;
+	}
+	else {
+		*((uint16_t*)&main_mem[*SP - 1]) = pc & 0xFFFF;
+		*SP -= 2;
+	}
+	//main_mem[(*SP)--] = (pc >> 8) & 0xFF; 
+	//main_mem[(*SP)--] = pc & 0xFF;
+	if (*SP >= coredef->mem_size) {
+		error_val = *SP;
+		return SP_ERROR;
+	}
+	// Calculate new PC
+	pc = inst->AL;
+	if (pc >= program->size) {
+		error_val = pc;
+		return PROG_MEM_ERROR;
+	}
+	return 0;
+}
+
+int RET_run(Instruction *inst) {
+	pc = 0;
+	pc |= main_mem[++(*SP)];
+	pc |= main_mem[++(*SP)] << 8;
+	if (coredef->pc_size == 22) {
+		pc = *((uint32_t*)&main_mem[*SP + 1]) & 0x3FFFFF;
+		*SP += 3;
+	}
+	else {
+		pc = *((uint16_t*)&main_mem[*SP + 1]);
+		*SP += 2;
+	}
+	if (*SP >= coredef->mem_size) {
+		error_val = *SP;
+		return SP_ERROR;
+	}
+	return 0;
+}
+
+int RETI_run(Instruction *inst) {
+	pc = 0;
+	pc |= main_mem[++(*SP)];
+	pc |= main_mem[++(*SP)] << 8;
+	if (coredef->pc_size == 22) {
+		pc = *((uint32_t*)&main_mem[*SP + 1]) & 0x3FFFFF;
+		*SP += 3;
+	}
+	else {
+		pc = *((uint16_t*)&main_mem[*SP + 1]);
+		*SP += 2;
+	}
+	if (*SP >= coredef->mem_size) {
+		error_val = *SP;
+		return SP_ERROR;
+	}
+	sreg[IREG] = true;
+	return 0;
+}
+
+int SBRC_run(Instruction *inst) {
+	uint8_t set = (regs[inst->D] >> inst->R) & 0x01;
+	if (!set) {
+		return inst->wsize + (inst + 1)->wsize;
+	}
+	return inst->wsize;
+}
+
+int SBRS_run(Instruction *inst) {
+	uint8_t set = (regs[inst->D] >> inst->R) & 0x01;
+	if (set) {
+		return inst->wsize + (inst + 1)->wsize;
+	}
+	return inst->wsize;
+}
+
+int SBIC_run(Instruction *inst) {
+	uint8_t set = (io_mem[inst->A] >> inst->R) & 0x01;
+	if (!set) {
+		return inst->wsize + (inst + 1)->wsize;
+	}
+	return inst->wsize;
+}
+
+int SBIS_run(Instruction *inst) {
+	uint8_t set = (io_mem[inst->A] >> inst->R) & 0x01;
+	if (set) {
+		return inst->wsize + (inst + 1)->wsize;
+	}
+	return inst->wsize;
+}
 
 int CP_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] - regs[inst->R];
@@ -726,7 +883,7 @@ int CP_run(Instruction *inst) {
 	CALC_Z;
 	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
 	CALC_S;
-	return 0;
+	return inst->wsize;
 }
 
 int CPC_run(Instruction *inst) {
@@ -745,7 +902,7 @@ int CPC_run(Instruction *inst) {
 	CALC_Z;
 	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
 	CALC_S;
-	return 0;
+	return inst->wsize;
 }
 
 int CPI_run(Instruction *inst) {
@@ -766,22 +923,38 @@ int CPI_run(Instruction *inst) {
 	CALC_Z;
 	sreg[CREG] = (!rd7 && k7) || (k7 && res7) || (res7 && rd7);
 	CALC_S;
-	return 0;
+	return inst->wsize;
 }
 
-int CPSE_run(Instruction *inst);
-int BRx_run(Instruction *inst);
+int CPSE_run(Instruction *inst) {
+	if (regs[inst->D] == regs[inst->R]) {
+		return inst->wsize + (inst + 1)->wsize;
+	}
+	return inst->wsize;
+}
+
+int BRx_run(Instruction *inst) {
+	// Brach dependent on status register
+	// inst->D determins if to branch when set
+	// or cleared
+	uint8_t branch = (sreg[inst->R] && inst->D) 
+		|| !(sreg[inst->R] || inst->D);
+	if (branch) {
+		return inst->K + inst->wsize;
+	}
+	return inst->wsize;
+}
 
 ////// Data Transfer Instructions//////////
 
 int MOV_run(Instruction *inst) {
 	regs[inst->D] = regs[inst->R];
-	return 0;
+	return inst->wsize;
 }
 
 int MOVW_run(Instruction *inst) {
 	regps[inst->D >> 1] = regps[inst->R >> 1];
-	return 0;
+	return inst->wsize;
 }
 
 int LD_run(Instruction *inst);
@@ -798,11 +971,22 @@ int IN_run(Instruction *inst);
 int OUT_run(Instruction *inst);
 int POP_run(Instruction *inst);
 int PUSH_run(Instruction *inst);
-int XCH_run(Instruction *inst);
 #ifdef XMEGA_SUPPORTED
-int LAC_run(Instruction *inst);
-int LAS_run(Instruction *inst);
-int LAT_run(Instruction *inst);
+int XCH_run(Instruction *inst) {
+	return UNHANDLED_ERROR;
+}
+
+int LAC_run(Instruction *inst) {
+	return UNHANDLED_ERROR;
+}
+
+int LAS_run(Instruction *inst) {
+	return UNHANDLED_ERROR;
+}
+
+int LAT_run(Instruction *inst) {
+	return UNHANDLED_ERROR;
+}
 #endif
 
 ////// Bitwise Instructions ///////////////
@@ -823,7 +1007,7 @@ int LSL_run(Instruction *inst) {
 	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 // Logical Shift Right
@@ -842,7 +1026,7 @@ int LSR_run(Instruction *inst) {
 	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 int ROL_run(Instruction *inst);
@@ -864,7 +1048,7 @@ int ASR_run(Instruction *inst) {
 	sreg[VREG] = sreg[NREG]^sreg[CREG];
 	// Save result
 	regs[inst->D] = res;
-	return 0;
+	return inst->wsize;
 }
 
 int SWAP_run(Instruction *inst);
@@ -873,7 +1057,7 @@ int SBI_run(Instruction *inst);
 
 int CBI_run(Instruction *inst) {
 	io_mem[inst->A] = ~(0x01 << inst->R);
-	return 0;
+	return inst->wsize;
 }
 
 int BST_run(Instruction *inst) {
@@ -884,7 +1068,7 @@ int BST_run(Instruction *inst) {
 	else {
 		sreg[TREG] = 0;
 	}
-	return 0;
+	return inst->wsize;
 }
 
 int BLD_run(Instruction *inst) {
@@ -895,7 +1079,7 @@ int BLD_run(Instruction *inst) {
 	else {
 		regs[inst->D] &= ~(0x01 << inst->R);
 	}
-	return 0;
+	return inst->wsize;
 }
 
 int SEx_run(Instruction *inst);

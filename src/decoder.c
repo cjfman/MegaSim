@@ -8,6 +8,7 @@
 #include "decoder.h"
 #include "opcode_defs.h"
 #include "core.h"
+#include "devices.h"
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -26,6 +27,15 @@ void makeBlankInstruction(Instruction *inst) {
 	inst->ireg = 0;
 	inst->wsize = 1;
 	inst->cycles = 1;
+}
+
+void decodeAllInstructions(void) {
+	unsigned int i;
+	//uint16_t *data = program->data;
+	//instruction *inst = program->instructions;
+	for (i = 0; i < program->size; i++) {
+		decodeInstruction(&program->instructions[i], &program->data[i]);
+	}
 }
 
 void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
@@ -512,5 +522,10 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 #ifdef DEBUG
 		decoderIllop("No match");
 #endif // DEBUG
+	}
+
+	// ILLOP Detection
+	if (coredef->type < inst->op) {
+		inst->op = ILLOP;
 	}
 }
