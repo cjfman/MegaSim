@@ -1,0 +1,80 @@
+#define ILLOP 	0
+#define ADD	33	// ADD was 0, but I need that number for invalid OP (NULL)
+#define ADC	1
+#define SUB	2
+#define SUBI	3
+#define SBC	4
+#define SBCI	5
+#define AND	6
+#define ANDI	7
+#define OR	8
+#define ORI	9
+#define EOR	10
+#define COM	11
+#define NEG	12
+#define INC	15
+#define DEC	16
+#define RJMP	20
+#define RCALL	21
+#define RET	22
+#define RETI	23
+#define CPSE	24
+#define CP	25
+#define CPC	26
+#define CPI	27
+#define SBRC	28
+#define SBRS	29
+#define SBIC	30
+#define SBIS	31
+#define BRx	32	// Covers all SREG conditional branches
+#define LD	52	// NOTE: Number does not correspond to compatibility
+#define ST	53	// for LD and ST
+#define MOV	54
+#define LDI	55
+#define IN	56
+#define OUT	57
+#define LPM	58
+#define SBI	59
+#define CBI	60
+#define LSL	61	// Secretly ADD
+#define LSR	62
+#define ROL	63	// Secretly ADC
+#define ROR	64
+#define ASR	65
+#define SWAP	66
+#define BST	69
+#define BLD	70
+#define SEx	71	// The set and clear operations
+#define CLx	72	// are decoded differently. They
+#define NOP	87
+#define SLEEP	88
+#define WDR	89
+#define ADIW	90
+#define SBIW	91
+#define IJMP	92
+#define ICALL	93
+#define LDD	94
+#define LDS	95	// Specifically the two word version
+#define STD	96
+#define STS	97
+#define PUSH	98	// Secretly ST with mode 7
+#define POP	99	// Secretly LD with mode 7
+#define JMP	100
+#define CALL	101
+#define ELPM	102
+#define MUL	103
+#define MULS	104
+#define MULSU	105
+#define FMUL	106
+#define FMULS	107
+#define FMULSU	108
+#define MOVW	109
+#define SPM	111
+#define BREAK	112
+#define EIJMP	113
+#define EICALL	114
+#define DES	115
+#define XCH	116
+#define LAS	117
+#define LAC	118
+#define LAT	119
