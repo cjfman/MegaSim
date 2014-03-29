@@ -30,7 +30,9 @@ TESTS = opcode_test.cpp \
 # All of the sources I want compiled
 SRC = decoder.c \
 	  core.c \
-	  handlers.c
+	  handlers.c \
+	  debugterm.c \
+	  devices.c
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that

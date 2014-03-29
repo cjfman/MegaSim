@@ -528,4 +528,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	if (coredef->type < inst->op) {
 		inst->op = ILLOP;
 	}
+
+	if (inst->op == ILLOP) {
+		// Point ireg to the illegal op
+		inst->ireg = opcode_p;
+	}
 }
