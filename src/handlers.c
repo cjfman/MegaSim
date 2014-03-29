@@ -6,14 +6,10 @@
 //
 
 #include "handlers.h"
+#include "debugterm.h"
+#include "opcode_defs.h"
 
-#warning BRx not implemented
-#warning BREAK not implemented
-#warning xCALL not implemented
-#warning xJMP not implemented
-#warning CPSE not implemented
-#warning error xLPM not implemented
-#warning IO not implemented
+#warning LD/ST not implemented
 
 int (*handlers[NUM_CODES])(Instruction*) = {
 	ILLOP_run,	// 0
@@ -179,16 +175,22 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 #define CALC_Z sreg[ZREG] = (res == 0);
 #define CALC_S sreg[SREG] = (sreg[NREG]^sreg[VREG]) & 0x01;
 
+void reset_run(void) {
+	pc = 0;
+	*SP = coredef->sram_end;
+}
 
 int unhandled_run(Instruction *inst) {
+	error_val = inst->op;
 	return UNHANDLED_ERROR;
 }
 
-////// Arithmetic and Logic Instructions ////////////////
-
 int ILLOP_run(Instruction *inst) {
+	error_val = *inst->ireg;
 	return ILLOP_ERROR;
 }
+
+////// Arithmetic and Logic Instructions ////////////////
 
 int ADD_run(Instruction *inst) {
 	uint8_t res = regs[inst->D] + regs[inst->R]; 
@@ -957,34 +959,94 @@ int MOVW_run(Instruction *inst) {
 	return inst->wsize;
 }
 
-int LD_run(Instruction *inst);
-int LDD_run(Instruction *inst);
-int LDI_run(Instruction *inst);
-int LDS_run(Instruction *inst);
-int LPM_run(Instruction *inst);
-int ELPM_run(Instruction *inst);
-int SPM_run(Instruction *inst);
-int ST_run(Instruction *inst);
-int STD_run(Instruction *inst);
-int STS_run(Instruction *inst);
-int IN_run(Instruction *inst);
-int OUT_run(Instruction *inst);
-int POP_run(Instruction *inst);
-int PUSH_run(Instruction *inst);
+int LD_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int LDD_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int LDI_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int LDS_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int LPM_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int ELPM_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int SPM_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int ST_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int STD_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int STS_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int IN_run(Instruction *inst) {
+	regs[inst->D] = io_mem[inst->A];
+	return inst->wsize;
+}
+
+int OUT_run(Instruction *inst) {
+	io_mem[inst->A] = regs[inst->D];
+	return 0;
+}
+
+int POP_run(Instruction *inst) {
+	regs[inst->D] = main_mem[++(*SP)];
+	return inst->wsize;
+}
+
+int PUSH_run(Instruction *inst) {
+	main_mem[(*SP)--] = regs[inst->D];
+	return inst->wsize;
+}
+
 #ifdef XMEGA_SUPPORTED
 int XCH_run(Instruction *inst) {
+	error_val = XCH;
 	return UNHANDLED_ERROR;
 }
 
 int LAC_run(Instruction *inst) {
+	error_val = LAC;
 	return UNHANDLED_ERROR;
 }
 
 int LAS_run(Instruction *inst) {
+	error_val = LAS;
 	return UNHANDLED_ERROR;
 }
 
 int LAT_run(Instruction *inst) {
+	error_val = LAT;
 	return UNHANDLED_ERROR;
 }
 #endif
@@ -1003,8 +1065,8 @@ int LSL_run(Instruction *inst) {
 	CALC_N;
 	CALC_Z;
 	sreg[CREG] = rd7;
-	CALC_S;
 	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
+	CALC_S;
 	// Save result
 	regs[inst->D] = res;
 	return inst->wsize;
@@ -1022,15 +1084,43 @@ int LSR_run(Instruction *inst) {
 	sreg[NREG] = 0;
 	CALC_Z;
 	sreg[CREG] = rd0;
-	CALC_S;
 	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
+	CALC_S;
 	// Save result
 	regs[inst->D] = res;
 	return inst->wsize;
 }
 
-int ROL_run(Instruction *inst);
-int ROR_run(Instruction *inst);
+// Rotate Left Through Carry
+int ROL_run(Instruction *inst) {
+	uint8_t res = (regs[inst->D] << 1) | sreg[CREG];
+	// Get bits
+	GET_RD3;
+	GET_RD7;
+	GET_RES7;
+	// Calculate sreg
+	sreg[HREG] = rd3;
+	CALC_N;
+	CALC_Z;
+	sreg[CREG] = rd7;
+	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
+	CALC_S;
+	return inst->wsize;
+}
+
+int ROR_run(Instruction *inst) {
+	uint8_t res = (sreg[CREG] << 7) | (regs[inst->D] >> 1);
+	// Get Bits
+	GET_RES7;
+	GET_RD0;
+	// Calc sreg
+	sreg[CREG] = rd0;
+	CALC_Z;
+	CALC_N;
+	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
+	CALC_S;
+	return inst->wsize;
+}
 
 // Arithmetic Shift Right
 int ASR_run(Instruction *inst) {
@@ -1044,19 +1134,27 @@ int ASR_run(Instruction *inst) {
 	CALC_N;
 	CALC_Z;
 	sreg[CREG] = rd0;
-	CALC_S;
 	sreg[VREG] = sreg[NREG]^sreg[CREG];
+	CALC_S;
 	// Save result
 	regs[inst->D] = res;
 	return inst->wsize;
 }
 
-int SWAP_run(Instruction *inst);
+int SWAP_run(Instruction *inst) {
+	uint8_t swap = regs[inst->D] & 0x0F;
+	regs[inst->D] >>= 4;
+	regs[inst->D] |= swap << 4;
+	return inst->wsize;
+}
 
-int SBI_run(Instruction *inst);
+int SBI_run(Instruction *inst) {
+	io_mem[inst->A] |= (0x01 << inst->R);
+	return inst->wsize;
+}
 
 int CBI_run(Instruction *inst) {
-	io_mem[inst->A] = ~(0x01 << inst->R);
+	io_mem[inst->A] &= ~(0x01 << inst->R);
 	return inst->wsize;
 }
 
@@ -1082,13 +1180,34 @@ int BLD_run(Instruction *inst) {
 	return inst->wsize;
 }
 
-int SEx_run(Instruction *inst);
-int CLx_run(Instruction *inst);
+int SEx_run(Instruction *inst) {
+	sreg[inst->R] = true;
+	return inst->wsize;
+}
+
+int CLx_run(Instruction *inst) {
+	sreg[inst->R] = false;
+	return inst->wsize;
+}
 
 ////// MCU Control Instructions //////////////
 
-int BREAK_run(Instruction *inst);
-int NOP_run(Instruction *inst);
-int SLEEP_run(Instruction *inst);
-int WDR_run(Instruction *inst);
+int BREAK_run(Instruction *inst) {
+	runDebugTerm();
+	return inst->wsize;
+}
+
+int NOP_run(Instruction *inst) {
+	return inst->wsize;
+}
+
+int SLEEP_run(Instruction *inst) {
+	error_val = SLEEP;
+	return UNHANDLED_ERROR;
+}
+
+int WDR_run(Instruction *inst) {
+	error_val = WDR;
+	return UNHANDLED_ERROR;
+}
 

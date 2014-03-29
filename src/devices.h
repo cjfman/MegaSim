@@ -10,16 +10,22 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
+
 // Core Definition
 typedef struct CoreDef {
 	uint8_t type;
 	unsigned int mem_size;		// Size in bytes
-	unsigned int io_mem_size;	// Size in bytes
 	unsigned int prog_mem_size;	// Size in words
+	uint16_t sram_start;		// Address of the start of the SRAM
+	uint16_t sram_end;
 	unsigned int pc_size;		// Size in bits
-	uint32_t SP_addr;			// The address of the SP in IO space
-	uint32_t EIND_addr;
+	uint16_t sreg_addr;			// Address of the status register
+	uint16_t SP_addr;			// The address of the SP in IO space
+	uint16_t EIND_addr;
 } CoreDef;
+
+extern CoreDef default_core;
 
 #ifdef __cplusplus
 }

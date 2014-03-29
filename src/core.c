@@ -19,11 +19,15 @@ void setupMemory(void) {
 	RX = (uint16_t*)(&regs[26]);  	// R27:R26
 	RY = (uint16_t*)(&regs[28]);  	// R29:R28
 	RZ = (uint16_t*)(&regs[30]);  	// R31:R30
+	io_mem = main_mem + 0x0020;
+	SP   = (uint16_t*)(main_mem + coredef->SP_addr);
+	SPL  = (uint8_t*) SP;
+	SPH  = SPL + 1;
+	EIND = main_mem + coredef->EIND_addr;
+}
 
-	// IO Memory
-	io_mem = (uint8_t*)malloc(coredef->io_mem_size);
-	SP   = io_mem + coredef->SP_addr;
-	EIND = io_mem + coredef->EIND_addr;
+void teardownMemory(void) {
+	free(main_mem);
 }
 
 // Main Control Loop

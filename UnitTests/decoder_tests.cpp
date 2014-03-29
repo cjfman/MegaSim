@@ -7,6 +7,7 @@
 #include "opcode_defs.h"
 #include "decoder.h"
 #include "core.h"
+#include "devices.h"
 
 uint16_t encode_rd(uint16_t rd) {
 	return (rd & 0x1F) << 4;
@@ -95,6 +96,13 @@ public:
 		rr = 0;
 		rd = 0;
 		code = 0;
+		coredef = &default_core;
+		coredef->type = CORE_L_XMEGA;
+		setupMemory();
+	}
+
+	virtual void TearDown() {
+		teardownMemory();
 	}
 };
 

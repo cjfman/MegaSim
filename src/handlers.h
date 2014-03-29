@@ -47,8 +47,8 @@ int error_val;
 
 extern int (*handlers[NUM_CODES])(Instruction*);
 
+void reset_run(void);
 int unhandled_run(Instruction *inst);
-
 int ILLOP_run(Instruction *inst);
 int ADC_run(Instruction *inst);
 int ADD_run(Instruction *inst);

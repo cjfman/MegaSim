@@ -7,6 +7,12 @@
 #ifndef CORE_h
 #define CORE_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif	// __cplusplus
+
+#warning Status Register should be part of memory
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include "devices.h"
@@ -63,7 +69,10 @@ uint16_t *RX;	// R27:R26
 uint16_t *RY;	// R29:R28
 uint16_t *RZ;	// R31:R30
 uint8_t *EIND;
-uint8_t *SP;
+uint16_t *SP;	// Stack pointer
+uint8_t *SPH;	// Stack pointer high
+uint8_t *SPL;	// Stack pointer low
+
 
 ////////////////////////
 // Device Properties
@@ -72,9 +81,15 @@ uint8_t *SP;
 CoreDef *coredef;
 
 /////////////////////////
-// Main Control Function
+// Functions
 /////////////////////////
 
+void setupMemory(void);
+void teardownMemory(void);
 int runAVR(void);
+
+#ifdef __cplusplus
+}
+#endif	// __cplusplus
 
 #endif // CORE_h
