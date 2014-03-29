@@ -7,7 +7,10 @@
 extern "C"
 #endif
 
-void runDebugTerm(void);
+extern int debug_mode;
+
+int runDebugTerm(void);
+int step(void);
 
 #ifdef __cplusplus
 }

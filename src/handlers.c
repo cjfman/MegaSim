@@ -1193,8 +1193,9 @@ int CLx_run(Instruction *inst) {
 ////// MCU Control Instructions //////////////
 
 int BREAK_run(Instruction *inst) {
-	runDebugTerm();
-	return inst->wsize;
+	if (debug_mode)
+		return 1;	// Do not recurse
+	return runDebugTerm();
 }
 
 int NOP_run(Instruction *inst) {
