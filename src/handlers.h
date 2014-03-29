@@ -35,6 +35,7 @@ extern "C" {
 #define ILLOP_ERROR		-5
 #define UNHANDLED_ERROR -1024
 #define PC_ERROR		-1025
+#define EXIT_ERROR		-1026
 
 int error_val;
 

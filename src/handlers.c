@@ -10,6 +10,7 @@
 #include "opcode_defs.h"
 
 #warning LD/ST not implemented
+#warning SLEEP/WDR not implemeted
 
 int (*handlers[NUM_CODES])(Instruction*) = {
 	ILLOP_run,	// 0
