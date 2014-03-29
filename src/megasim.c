@@ -6,27 +6,32 @@
 // MIT Lisense
 //
 
-#define DEBUG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <math.h>
 #include "megasim.h"
 #include "core.h"
+#include "devices.h"
+#include "decoder.h"
 
 int main(int argc, char* argv[]) {
 	int error = 0;
 	// Parse arguments
 	error = parseArgs(argc, argv, &args);
 	if (error) return 1;
+	coredef = &default_core;
+
+	// Load Program
 	program = loadData(&args);
 	if (!program) {
 		return 1;
 	}
-	fprintf(stderr, "Program loaded\n");
+	fprintf(stderr, "Program loaded. %d bytes\n", program->size*2);
+	/*
 	int i;
 	for (i = 0; i < 64; i++) {
 		if (i != 0 && i%16 == 0) {
@@ -34,7 +39,26 @@ int main(int argc, char* argv[]) {
 		}
 		fprintf(stderr, "%02x", ((unsigned char*)(program->data))[i]);
 	}
-	return 0;
+	// */
+
+	// Setup core
+	setupMemory();
+	decodeAllInstructions();
+	fprintf(stderr, "All instructions decoded\n");
+	
+	// Start simulator
+	fprintf(stderr, "Starting simulator\n");
+	error = runAVR();
+	if (error) {
+		fprintf(stderr, "Unrecoverable Error: %d\n", error);
+	}
+
+	// Free memory
+	teardownMemory();
+	free(program->data);
+	free(program->instructions);
+	free(program);
+	return error;
 }
 
 ///////////////////////////////////////////
@@ -64,12 +88,15 @@ Program* loadBinFile(const char* path) {
 		return NULL;
 	}
 	int size = getFileSize(file) / 2; 	// Size in 16 bit words
+	size = fmin(size, coredef->prog_mem_size);
 	// Allocate buffer memory
 	program->size = size;
-	program->data = (uint16_t*)malloc(size*sizeof(uint16_t));
-	program->instructions = (Instructions*)malloc(size*sizeof(Instruction));
+	program->data = (uint16_t*)malloc(coredef->prog_mem_size*2);
+	program->instructions = 
+		(Instruction*)malloc(coredef->prog_mem_size*sizeof(Instruction));
+	memset(program->data, 0, coredef->prog_mem_size*2);
 	// Read entire file into buffer
-	fread(program->data, sizeof(char), size, file);
+	fread(program->data, sizeof(uint16_t), size, file);
 	fclose(file);
 	return program;
 }
@@ -85,10 +112,10 @@ Program* loadHexFile(const char* path) {
 	}
 	int size = getFileSize(file);
 	// Allocate buffer memory
-	// Intex hex file is at least twice the size in bytes
-	// of the program
-	program->data = (uint16_t*)malloc(size/2);
-	program->size = 0;
+	program->data = (uint16_t*)malloc(coredef->prog_mem_size*2);
+	program->instructions = 
+		(Instruction*)malloc(coredef->prog_mem_size*sizeof(Instruction));
+	memset(program->data, 0, coredef->prog_mem_size*2);
 	// Load and parse Intel Hex File
 	char *buf = (char*)malloc(size+1);
 	fread(buf, sizeof(char), size, file);
@@ -97,7 +124,7 @@ Program* loadHexFile(const char* path) {
 	char* pos = strchr(buf, ':');	// The position in the buffer
 	char* next;						// The next position to step to
 	char bytes[256];				// The most number of bytes per line
-	while (pos != NULL) {
+	while (pos != NULL && program->size < coredef->prog_mem_size) {
 		line++;
 		pos++;
 		next = strchr(pos, ':');	// Find next section
@@ -115,7 +142,6 @@ Program* loadHexFile(const char* path) {
 		}
 		hexToByteArray(bytes, 256, pos);
 		uint8_t byte_count = bytes[0];
-		program->size += byte_count / 2;	// Size in words
 		uint32_t address;
 		char *c = (char*)&address;	// Create a pointer
 		c[0] = bytes[2];			// For the sake of switching address
@@ -134,7 +160,10 @@ Program* loadHexFile(const char* path) {
 		}
 		int j;
 		uint8_t sum = 0;		// Used to calculate checksum
-		for (j = 0; j < byte_count; j++) {
+		int max_trans = 		// Don't copy past the end of memory
+			fmin(byte_count, coredef->prog_mem_size - program->size);
+		program->size += max_trans;
+		for (j = 0; j < max_trans; j++) {
 			char b = bytes[j+4];
 			sum += b;								// Calculate checksum
 			((char*)program->data)[address+j] = b;	// Transfer data
@@ -156,8 +185,6 @@ Program* loadHexFile(const char* path) {
 		pos = next;
 	}
 	free(buf);
-	program->instructions = 
-		(Instruction*)malloc(program->size*sizeof(instruction));
 	fprintf(stderr, "Intel Hex File decoded\n");
 	return program;
 }

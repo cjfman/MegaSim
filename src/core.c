@@ -6,8 +6,10 @@
 //
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "core.h"
 #include "handlers.h"
+#include "decoder.h"
 
 void setupMemory(void) {
 	// Initialize pointers
@@ -32,13 +34,22 @@ void teardownMemory(void) {
 
 // Main Control Loop
 int runAVR(void) {
+	reset_run();
 	while (true) {
 		Instruction inst = program->instructions[pc];
+#ifdef DEBUG
+		fprintf(stderr, "0x%x\t", pc);
+		printInstruction(&inst);
+		fprintf(stderr, "\n");
+#endif // DEBUG
 		int result = handlers[inst.op](&inst);
 		if (result < 0) {
 			return result;
 		}
 		pc += result;
+		if (pc >= program->size) {
+			return PC_ERROR;
+		}
 	}
 	return 0;
 }

@@ -970,8 +970,8 @@ int LDD_run(Instruction *inst) {
 }
 
 int LDI_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	regs[inst->D] = inst->K;
+	return inst->wsize;
 }
 
 int LDS_run(Instruction *inst) {
@@ -1016,7 +1016,7 @@ int IN_run(Instruction *inst) {
 
 int OUT_run(Instruction *inst) {
 	io_mem[inst->A] = regs[inst->D];
-	return 0;
+	return inst->wsize;
 }
 
 int POP_run(Instruction *inst) {

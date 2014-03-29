@@ -5,4 +5,5 @@
 
 void runDebugTerm(void) {
 	fprintf(stderr, "WARNING: debug terminal not implemented\n");
+	getchar();
 }

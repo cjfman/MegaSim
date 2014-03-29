@@ -35,8 +35,31 @@ void decodeAllInstructions(void) {
 	//instruction *inst = program->instructions;
 	for (i = 0; i < program->size; i++) {
 		decodeInstruction(&program->instructions[i], &program->data[i]);
+#ifdef DEBUG
+		fprintf(stderr, "0x%x\t0x%x\t", i, program->data[i]);
+		printInstruction(&program->instructions[i]);
+		fprintf(stderr, "\n");
+#endif
 	}
 }
+
+#ifdef DEBUG
+void printInstruction(Instruction *inst) {
+	fprintf(stderr, "%s", opcode_strings[inst->op]);
+	switch(inst->op) {
+	case JMP:
+	case CALL:
+		fprintf(stderr, ": AL: 0x%x", inst->AL);
+		break;
+	case RJMP:
+	case RCALL:
+		fprintf(stderr, ": K: %d", inst->K);
+		break;
+	}
+}
+#endif // DEBUG
+
+#undef DEBUG
 
 void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	// Dereferece opcode
@@ -524,7 +547,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 #endif // DEBUG
 	}
 
-	// ILLOP Detection
+	// Unsupported Code Detection
 	if (coredef->type < inst->op) {
 		inst->op = ILLOP;
 	}

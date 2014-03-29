@@ -34,6 +34,7 @@ extern "C" {
 #define BAD_REG_ERROR 	-4
 #define ILLOP_ERROR		-5
 #define UNHANDLED_ERROR -1024
+#define PC_ERROR		-1025
 
 int error_val;
 

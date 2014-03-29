@@ -32,7 +32,8 @@ SRC = decoder.c \
 	  core.c \
 	  handlers.c \
 	  debugterm.c \
-	  devices.c
+	  devices.c \
+	  opcode_defs.c
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that

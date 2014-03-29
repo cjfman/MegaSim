@@ -4,7 +4,7 @@
 #include "opcode_defs.h"
 
 CoreDef default_core = {
-	.type 			= CORE_L_128k,
+	.type 			= CORE_L_XMEGA,
 	.mem_size 		= 65536,
 	.prog_mem_size 	= 128*1024/2,
 	.sram_start		= 0x0100,

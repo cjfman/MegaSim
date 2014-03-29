@@ -5,10 +5,13 @@ PROJECT = megasim
 SOURCES = megasim.c \
 		  core.c \
 		  decoder.c \
-		  handlers.c 
+		  handlers.c \
+		  debugterm.c \
+		  devices.c \
+		  opcode_defs.c
 
 ## FLAGS
-FLAGS = -g
+FLAGS = -g -O0 -D DEBUG
 CCFLAGS = $(FLAGS)
 CXXFLAGS =
 

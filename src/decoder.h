@@ -33,6 +33,10 @@ typedef struct Instuction {
 	uint8_t cycles;	// The number of cycles the instruction takes
 } Instruction;
 
+#ifdef DEBUG
+void printInstruction(Instruction *inst);
+#endif // DEBUG
+
 // Make a new blank instruction
 void makeBlankInstruction(Instruction *inst);
 

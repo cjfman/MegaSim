@@ -166,4 +166,6 @@
 #define LAC	118
 #define LAT	119
 
+extern char *opcode_strings[128];
+
 #endif
