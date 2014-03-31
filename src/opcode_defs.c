@@ -72,13 +72,13 @@ char *opcode_strings[128] = {
 	"BLD",	// 70
 	"SEx",	// 71
 	"CLx",	// 72
-	"NO_CODE",	// 73
-	"NO_CODE",	// 74
-	"NO_CODE",	// 75
-	"NO_CODE",	// 76
-	"NO_CODE",	// 77
-	"NO_CODE",	// 78
-	"NO_CODE",	// 79
+	"NOP",	// 73
+	"SLEEP",// 74
+	"WDR",	// 75
+	"LD2",	// 76
+	"LD3",	// 77
+	"ST2",	// 78
+	"ST3",	// 79
 	"NO_CODE",	// 80
 	"NO_CODE",	// 81
 	"NO_CODE",	// 82
@@ -86,13 +86,13 @@ char *opcode_strings[128] = {
 	"NO_CODE",	// 84
 	"NO_CODE",	// 85
 	"NO_CODE",	// 86
-	"NOP",	// 87
-	"SLEEP",	// 88
-	"WDR",	// 89
+	"NO_CODE",	// 87
+	"NO_CODE",	// 88
+	"NO_CODE",	// 89
 	"ADIW",	// 90
 	"SBIW",	// 91
 	"IJMP",	// 92
-	"ICALL",	// 93
+	"ICALL",// 93
 	"LDD",	// 94
 	"LDS",	// 95
 	"STD",	// 96

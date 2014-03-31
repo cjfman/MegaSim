@@ -92,6 +92,8 @@ int LAS_run(Instruction *inst);
 int LAT_run(Instruction *inst);
 #endif // XMEGA_SUPPORTED
 int LD_run(Instruction *inst);
+int LD2_run(Instruction *inst);
+int LD3_run(Instruction *inst);
 int LDD_run(Instruction *inst);
 int LDI_run(Instruction *inst);
 int LDS_run(Instruction *inst);
@@ -129,6 +131,8 @@ int SEZ_run(Instruction *inst);
 int SLEEP_run(Instruction *inst);
 int SPM_run(Instruction *inst);
 int ST_run(Instruction *inst);
+int ST2_run(Instruction *inst);
+int ST3_run(Instruction *inst);
 int STD_run(Instruction *inst);
 int STS_run(Instruction *inst);
 int SUB_run(Instruction *inst);

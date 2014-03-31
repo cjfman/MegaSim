@@ -55,7 +55,7 @@ int runAVR(void) {
 }
 
 inline void writeMem(uint16_t addr, uint8_t data) {
-	if (addr >= coredef->sram_addr) {
+	if (addr >= coredef->sram_start) {
 		main_mem[addr] = data;
 	}
 	else if (addr == coredef->sreg_addr) {
@@ -74,7 +74,7 @@ inline void writeMem(uint16_t addr, uint8_t data) {
 }
 
 inline uint8_t readMem(uint16_t addr) {
-	if (addr >= coredef->sram_addr) {
+	if (addr >= coredef->sram_start) {
 		return main_mem[addr];
 	}
 	if (addr == coredef->sreg_addr) {

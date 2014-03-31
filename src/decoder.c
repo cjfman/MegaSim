@@ -10,12 +10,11 @@
 #include "core.h"
 #include "devices.h"
 
-#ifdef DEBUG
 #include <stdio.h>
+
 void decoderIllop(const char* m) {
 	printf("Decoder Error Illop: %s\n", m);
 }
-#endif
 
 void makeBlankInstruction(Instruction *inst) {
 	inst->op = 0;
@@ -43,7 +42,6 @@ void decodeAllInstructions(void) {
 	}
 }
 
-#ifdef DEBUG
 void printInstruction(Instruction *inst) {
 	fprintf(stderr, "%s", opcode_strings[inst->op]);
 	switch(inst->op) {
@@ -57,7 +55,6 @@ void printInstruction(Instruction *inst) {
 		break;
 	}
 }
-#endif // DEBUG
 
 #undef DEBUG
 
@@ -226,8 +223,18 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	// This Opcode must come after LDS/STS and PUSH/POP
 	// To prevent matching their codes.
 	else if ((opcode & 0xFC00) == 0x9000) {
-		inst->mode = ((opcode) & 0x03) + 1;
-		inst->op = (opcode & 0x0200) ? ST : LD;
+		swap = ((opcode) & 0x03); // Get mode
+		inst->mode = swap + 1;
+		if (opcode & 0x0200) {
+			inst->op = (swap == 0) ? ST  :
+					   (swap == 1) ? ST2 :
+					   (swap == 2) ? ST3 : ILLOP;
+		}
+		else {
+			inst->op = (swap == 0) ? LD  :
+					   (swap == 1) ? LD2 :
+					   (swap == 2) ? LD3 : ILLOP;
+		}
 		swap = (opcode >> 2) & 0x03;
 		switch(swap) {
 		case 0: // RZ 
@@ -235,27 +242,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 			break;
 		case 1: // Weird XMEGA OPCODE and LPM and ELPM modes ii-iii
 			// Override ST/LD
-			if (inst->op == LD) {
-				switch(opcode & 0x3) {
-					case 0: // LPM (ii)
-						inst->op = LPM;
-						inst->mode = 2;
-						break;
-					case 1: // LPM (iii)
-						inst->op = LPM;
-						inst->mode = 3;
-						break;
-					case 2: // ELPM (ii)
-						inst->op = ELPM;
-						inst->mode = 2;
-						break;
-					case 3: // ELPM (iii)
-						inst->op = ELPM;
-						inst->mode = 3;
-						break;
-				}
-			}
-			else {
+			if (opcode & 0x0200) {
 #ifdef XMEGA_SUPPORTED
 				switch(inst->mode) {
 				case 0: // XCH
@@ -277,6 +264,26 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 				decoderIllop("XMEGA specific opcodes");
 	#endif // DEBUG
 #endif // XMEGA_SUPPORTED
+			}
+			else {
+				switch(opcode & 0x3) {
+					case 0: // LPM (ii)
+						inst->op = LPM;
+						inst->mode = 2;
+						break;
+					case 1: // LPM (iii)
+						inst->op = LPM;
+						inst->mode = 3;
+						break;
+					case 2: // ELPM (ii)
+						inst->op = ELPM;
+						inst->mode = 2;
+						break;
+					case 3: // ELPM (iii)
+						inst->op = ELPM;
+						inst->mode = 3;
+						break;
+				}
 			}
 			break;
 		case 2: // RY

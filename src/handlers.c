@@ -86,13 +86,13 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 	BLD_run,	// 70
 	SEx_run,	// 71
 	CLx_run,	// 72
-	unhandled_run,	// 73
-	unhandled_run,	// 74
-	unhandled_run,	// 75
-	unhandled_run,	// 76
-	unhandled_run,	// 77
-	unhandled_run,	// 78
-	unhandled_run,	// 79
+	NOP_run,	// 73
+	SLEEP_run,	// 74
+	WDR_run,	// 75
+	LD2_run,	// 76
+	LD3_run,	// 77
+	ST2_run,	// 78
+	ST3_run,	// 79
 	unhandled_run,	// 80
 	unhandled_run,	// 81
 	unhandled_run,	// 82
@@ -100,9 +100,9 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 	unhandled_run,	// 84
 	unhandled_run,	// 85
 	unhandled_run,	// 86
-	NOP_run,	// 87
-	SLEEP_run,	// 88
-	WDR_run,	// 89
+	unhandled_run,	// 87
+	unhandled_run,	// 88
+	unhandled_run,	// 89
 	ADIW_run,	// 90
 	SBIW_run,	// 91
 	IJMP_run,	// 92
@@ -965,6 +965,16 @@ int LD_run(Instruction *inst) {
 	return UNHANDLED_ERROR;
 }
 
+int LD2_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int LD3_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
 int LDD_run(Instruction *inst) {
 	error_val = inst->op;
 	return UNHANDLED_ERROR;
@@ -996,6 +1006,16 @@ int SPM_run(Instruction *inst) {
 }
 
 int ST_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int ST2_run(Instruction *inst) {
+	error_val = inst->op;
+	return UNHANDLED_ERROR;
+}
+
+int ST3_run(Instruction *inst) {
 	error_val = inst->op;
 	return UNHANDLED_ERROR;
 }

@@ -9,7 +9,7 @@
 //#define XMEGA_SUPPORTED
 
 // Core levels
-#define CORE_L_MIN	 89 // Minimum Core
+#define CORE_L_MIN	 76 // Minimum Core
 #define CORE_L_8k	 99 // Clasic Cores
 #define CORE_L_128k	102
 #define CORE_L_E8k	111 // Enhanced Cores
@@ -35,13 +35,13 @@
 #define EOR	10
 #define COM	11
 #define NEG	12
-#define SBR	13	// Same as ORI
-#define CBR	14	// Same as ANDI
+//#define SBR	13	// Same as ORI
+//#define CBR	14	// Same as ANDI
 #define INC	15
 #define DEC	16
-#define TST	17	// Secretly ANDI
-#define CLR	18	// Secretly EOR
-#define SER	19	// Secretly LDI
+//#define TST	17	// Secretly ANDI
+//#define CLR	18	// Secretly EOR
+//#define SER	19	// Secretly LDI
 // Branches
 #define RJMP	20
 #define RCALL	21
@@ -56,26 +56,26 @@
 #define SBIC	30
 #define SBIS	31
 #define BRx	32	// Covers all SREG conditional branches
-#define BRBS	32	// Covered by the specific conditional branches
-#define BRBC	33	// This one too. ADD borrows 33 for its code.
-#define BREQ	34
-#define BRNE	35
-#define BRCS	36
-#define BRCC	37
-#define BRSH	38	// aka BRCC
-#define BRLO	39
-#define BRMI	40
-#define BRPL	41
-#define BRGE	42
-#define BRLT	43
-#define BRHS	44
-#define BRHC	45
-#define BRTS	46
-#define BRTC	47
-#define BRVS	48
-#define BRVC	49
-#define BRIE	50
-#define BRID	51
+//#define BRBS	32	// Covered by the specific conditional branches
+//#define BRBC	33	// This one too. ADD borrows 33 for its code.
+//#define BREQ	34
+//#define BRNE	35
+//#define BRCS	36
+//#define BRCC	37
+//#define BRSH	38	// aka BRCC
+//#define BRLO	39
+//#define BRMI	40
+//#define BRPL	41
+//#define BRGE	42
+//#define BRLT	43
+//#define BRHS	44
+//#define BRHC	45
+//#define BRTS	46
+//#define BRTC	47
+//#define BRVS	48
+//#define BRVC	49
+//#define BRIE	50
+//#define BRID	51
 // Transfers
 #define LD	52	// NOTE: Number does not correspond to compatibility
 #define ST	53	// for LD and ST
@@ -87,38 +87,43 @@
 // Bitwise
 #define SBI	59
 #define CBI	60
-#define LSL	61	// Secretly ADD
+//#define LSL	61	// Secretly ADD
 #define LSR	62
-#define ROL	63	// Secretly ADC
+//#define ROL	63	// Secretly ADC
 #define ROR	64
 #define ASR	65
 #define SWAP	66
-#define BSET	67	// Covered by SEx
-#define BCLR	68	// Covered by CLx
+//#define BSET	67	// Covered by SEx
+//#define BCLR	68	// Covered by CLx
 #define BST	69
 #define BLD	70
-#define SEx	71	// The set and clear operations
+#define SEx	71		// The set and clear operations
 #define CLx     72	// are decoded differently. They
-#define SEC	71	// Are decoded as SEx and CLx.
-#define CLC	72
-#define SEN	73	// The bits in the status register
-#define CLN	74	// Are indexed in this order
-#define SEZ	75	// +-------------------------------+
-#define CLZ	76	// | I | T | H | S | V | N | Z | C |
-#define SEI	77	// +-------------------------------+
-#define CLI	78	//  MSB                         LSB
-#define SES	79
-#define CLS	80
-#define SEV	81
-#define CLV	82
-#define SET	83
-#define CLT	84
-#define SEH	85
-#define CLH	86
-#define NOP	87
-#define SLEEP	88
-#define WDR	89
+//#define SEC	71	// Are decoded as SEx and CLx.
+//#define CLC	72
+//#define SEN	73	// The bits in the status register
+//#define CLN	74	// Are indexed in this order
+//#define SEZ	75	// +-------------------------------+
+//#define CLZ	76	// | I | T | H | S | V | N | Z | C |
+//#define SEI	77	// +-------------------------------+
+//#define CLI	78	//  MSB                         LSB
+//#define SES	79
+//#define CLS	80
+//#define SEV	81
+//#define CLV	82
+//#define SET	83
+//#define CLT	84
+//#define SEH	85
+//#define CLH	86
+#define NOP		73
+#define SLEEP	74
+#define WDR		75
 // Classic Core 8k
+// Load and Store modes ii and iii
+#define LD2		76
+#define LD3		77
+#define ST2		78
+#define ST3		79
 // Arithmetic 
 #define ADIW	90
 #define SBIW	91

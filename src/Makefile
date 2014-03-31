@@ -11,7 +11,7 @@ SOURCES = megasim.c \
 		  opcode_defs.c
 
 ## FLAGS
-FLAGS = -g -O0 -D DEBUG
+FLAGS = -g -O0 #-D DEBUG
 CCFLAGS = $(FLAGS)
 CXXFLAGS =
 
