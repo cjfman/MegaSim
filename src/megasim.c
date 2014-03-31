@@ -11,6 +11,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <ctype.h>
 #include <math.h>
 #include "megasim.h"
@@ -259,10 +260,19 @@ void initArgs(Args* args) {
 	args->path = NULL;
 }
 
+static struct option long_options[] = {
+	/* These options set a flag*/
+	/* These options don't set a flag*/
+	{"hex", no_argument, 0, 'h'},
+	/*end*/
+	{0, 0, 0, 0}
+};
+
 int parseArgs(int argc, char* argv[], Args* args) {
 	initArgs(args);
+	int oindex = 0;
 	int c;
-	while ((c = getopt(argc, argv, "h")) != -1) {
+	while ((c = getopt_long(argc, argv, "h", long_options, &oindex)) != -1) {
 		switch (c) {
 		case 'h':
 			args->hex = true;
