@@ -12,7 +12,6 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
-#include "core.h"
 #include "decoder.h"
 
 #define NUM_CODES 128

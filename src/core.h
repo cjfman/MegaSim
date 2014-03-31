@@ -85,8 +85,8 @@ CoreDef *coredef;
 void setupMemory(void);
 void teardownMemory(void);
 int runAVR(void);
-inline void writeMem(uint16_t addr, uint8_t data);
-inline uint8_t readMem(uint16_t addr);
+void writeMem(uint16_t addr, uint8_t data);
+uint8_t readMem(uint16_t addr);
 
 #ifdef __cplusplus
 }

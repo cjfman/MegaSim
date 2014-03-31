@@ -6,11 +6,14 @@
 //
 
 #include "handlers.h"
+#include "core.h"
 #include "debugterm.h"
 #include "opcode_defs.h"
 
-#warning LD/ST not implemented
 #warning SLEEP/WDR not implemeted
+#warning LPM/ELPM,SPM not implemented
+
+#define UNUSED(p) ((p)=(p))
 
 int (*handlers[NUM_CODES])(Instruction*) = {
 	ILLOP_run,	// 0
@@ -644,6 +647,7 @@ int RJMP_run(Instruction *inst) {
 
 // Indirect Jump
 int IJMP_run(Instruction *inst) {
+	UNUSED(inst);
 	pc = *RZ;
 	if (pc >= program->size) {
 		error_val = pc;
@@ -654,6 +658,7 @@ int IJMP_run(Instruction *inst) {
 
 // Extended Indirect Jump
 int EIJMP_run(Instruction *inst) {
+	UNUSED(inst);
 	pc = *RZ;
 	pc &= 0xFF;
 	pc |= *EIND << 8;
@@ -707,6 +712,7 @@ int RCALL_run(Instruction *inst) {
 }
 
 int EICALL_run(Instruction *inst) {
+	UNUSED(inst);
 	// Push old PC+1 to stack
 	pc++;
 	if (coredef->pc_size == 22) {
@@ -740,6 +746,7 @@ int EICALL_run(Instruction *inst) {
 }
 
 int ICALL_run(Instruction *inst) {
+	UNUSED(inst);
 	// Push old PC+1 to stack
 	pc++;
 	if (coredef->pc_size == 22) {
@@ -800,6 +807,7 @@ int CALL_run(Instruction *inst) {
 }
 
 int RET_run(Instruction *inst) {
+	UNUSED(inst);
 	pc = 0;
 	pc |= main_mem[++(*SP)];
 	pc |= main_mem[++(*SP)] << 8;
@@ -819,6 +827,7 @@ int RET_run(Instruction *inst) {
 }
 
 int RETI_run(Instruction *inst) {
+	UNUSED(inst);
 	pc = 0;
 	pc |= main_mem[++(*SP)];
 	pc |= main_mem[++(*SP)] << 8;
@@ -961,23 +970,23 @@ int MOVW_run(Instruction *inst) {
 }
 
 int LD_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	regs[inst->D] = readMem(*RX);
+	return inst->wsize;
 }
 
 int LD2_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	regs[inst->D] = readMem((*inst->ireg)++);
+	return inst->wsize;
 }
 
 int LD3_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	regs[inst->D] = readMem(--(*inst->ireg));
+	return inst->wsize;
 }
 
 int LDD_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	regs[inst->D] = readMem(*inst->ireg + inst->K);
+	return inst->wsize;
 }
 
 int LDI_run(Instruction *inst) {
@@ -986,11 +995,13 @@ int LDI_run(Instruction *inst) {
 }
 
 int LDS_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	regs[inst->D] = readMem(inst->AL);
+	return inst->wsize;
 }
 
 int LPM_run(Instruction *inst) {
+	//regs[inst->D] = ((uint8_t*)program->data)[*RZ];
+	//return inst->wsize;
 	error_val = inst->op;
 	return UNHANDLED_ERROR;
 }
@@ -1006,28 +1017,28 @@ int SPM_run(Instruction *inst) {
 }
 
 int ST_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	writeMem(*RX, regs[inst->D]);
+	return inst->wsize;
 }
 
 int ST2_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	writeMem((*inst->ireg)++, regs[inst->D]);
+	return inst->wsize;
 }
 
 int ST3_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	writeMem(--(*inst->ireg), regs[inst->D]);
+	return inst->wsize;
 }
 
 int STD_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	writeMem(*inst->ireg + inst->K, regs[inst->D]);
+	return inst->wsize;
 }
 
 int STS_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	writeMem(inst->AL, regs[inst->D]);
+	return inst->wsize;
 }
 
 int IN_run(Instruction *inst) {
@@ -1214,6 +1225,7 @@ int CLx_run(Instruction *inst) {
 ////// MCU Control Instructions //////////////
 
 int BREAK_run(Instruction *inst) {
+	UNUSED(inst);
 	if (debug_mode)
 		return 1;	// Do not recurse
 	return runDebugTerm();
@@ -1224,11 +1236,13 @@ int NOP_run(Instruction *inst) {
 }
 
 int SLEEP_run(Instruction *inst) {
+	UNUSED(inst);
 	error_val = SLEEP;
 	return UNHANDLED_ERROR;
 }
 
 int WDR_run(Instruction *inst) {
+	UNUSED(inst);
 	error_val = WDR;
 	return UNHANDLED_ERROR;
 }
