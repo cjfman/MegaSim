@@ -53,3 +53,39 @@ int runAVR(void) {
 	}
 	return 0;
 }
+
+inline void writeMem(uint16_t addr, uint8_t data) {
+	if (addr >= coredef->sram_addr) {
+		main_mem[addr] = data;
+	}
+	else if (addr == coredef->sreg_addr) {
+		sreg[0] = data & 0x1;
+		sreg[1] = (data >> 1) & 0x1;
+		sreg[2] = (data >> 2) & 0x1;
+		sreg[3] = (data >> 3) & 0x1;
+		sreg[4] = (data >> 4) & 0x1;
+		sreg[5] = (data >> 5) & 0x1;
+		sreg[6] = (data >> 6) & 0x1;
+		sreg[7] = data >> 7;
+	}
+	else {
+		main_mem[addr] = data;
+	}
+}
+
+inline uint8_t readMem(uint16_t addr) {
+	if (addr >= coredef->sram_addr) {
+		return main_mem[addr];
+	}
+	if (addr == coredef->sreg_addr) {
+		return sreg[0] 
+			| (sreg[1] << 1)
+			| (sreg[2] << 2)
+			| (sreg[3] << 3)
+			| (sreg[4] << 4)
+			| (sreg[5] << 5)
+			| (sreg[6] << 6)
+			| (sreg[7] << 7);
+	}
+	return main_mem[addr];
+}

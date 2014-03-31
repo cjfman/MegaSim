@@ -11,8 +11,6 @@
 extern "C" {
 #endif	// __cplusplus
 
-#warning Status Register should be part of memory
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include "devices.h"
@@ -87,6 +85,8 @@ CoreDef *coredef;
 void setupMemory(void);
 void teardownMemory(void);
 int runAVR(void);
+inline void writeMem(uint16_t addr, uint8_t data);
+inline uint8_t readMem(uint16_t addr);
 
 #ifdef __cplusplus
 }
