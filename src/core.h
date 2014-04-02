@@ -88,6 +88,13 @@ int runAVR(void);
 void writeMem(uint16_t addr, uint8_t data);
 uint8_t readMem(uint16_t addr);
 
+//////////////
+// Printing
+//////////////
+
+uint8_t stderr_addr;
+uint8_t stdout_addr;
+
 #ifdef __cplusplus
 }
 #endif	// __cplusplus

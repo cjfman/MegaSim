@@ -135,8 +135,8 @@
 #define LDS	95	// Specifically the two word version
 #define STD	96
 #define STS	97
-#define PUSH	98	// Secretly ST with mode 7
-#define POP	99	// Secretly LD with mode 7
+#define PUSH	98	
+#define POP	99	
 // Classic Core 128k
 // Branching
 #define JMP	100

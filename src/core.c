@@ -11,6 +11,8 @@
 #include "handlers.h"
 #include "decoder.h"
 
+#undef DEBUG
+
 void setupMemory(void) {
 	// Initialize pointers
 	// Main Memory
@@ -48,6 +50,7 @@ int runAVR(void) {
 		}
 		pc += result;
 		if (pc >= program->size) {
+			printf("%d:%d", program->size, pc);
 			return PC_ERROR;
 		}
 	}
@@ -67,6 +70,12 @@ void writeMem(uint16_t addr, uint8_t data) {
 		sreg[5] = (data >> 5) & 0x1;
 		sreg[6] = (data >> 6) & 0x1;
 		sreg[7] = data >> 7;
+	}
+	else if (addr == stderr_addr) {
+		fprintf(stderr, "%c", data);
+	}
+	else if (addr == stdout_addr) {
+		fprintf(stdout, "%c", data);
 	}
 	else {
 		main_mem[addr] = data;

@@ -24,6 +24,8 @@ int main(int argc, char* argv[]) {
 	// Parse arguments
 	error = parseArgs(argc, argv, &args);
 	if (error) return 1;
+	stderr_addr = args.stderr_addr;
+	stdout_addr = args.stdout_addr;
 	coredef = &default_core;
 
 	// Load Program
@@ -256,8 +258,10 @@ bool isValidHexString(const char* str) {
 //////////////////////////////////////////////////
 
 void initArgs(Args* args) {
-        args->hex = false;
+    args->hex = false;
 	args->path = NULL;
+	args->stderr_addr = 0x00E0;
+	args->stdout_addr = 0x00E1;
 }
 
 static struct option long_options[] = {

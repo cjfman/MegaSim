@@ -5,12 +5,13 @@
 // MIT Lisense
 //
 
+#include <stdio.h>
+#include <ctype.h>
 #include "decoder.h"
 #include "opcode_defs.h"
 #include "core.h"
 #include "devices.h"
 
-#include <stdio.h>
 
 void decoderIllop(const char* m) {
 	printf("Decoder Error Illop: %s\n", m);
@@ -45,14 +46,34 @@ void decodeAllInstructions(void) {
 void printInstruction(Instruction *inst) {
 	fprintf(stderr, "%s", opcode_strings[inst->op]);
 	switch(inst->op) {
+	case LDS:
+		fprintf(stderr, ": R%d ", inst->D);
 	case JMP:
 	case CALL:
 		fprintf(stderr, ": AL: 0x%x", inst->AL);
 		break;
 	case RJMP:
 	case RCALL:
+	case BRx:
 		fprintf(stderr, ": K: %d", inst->K);
 		break;
+	case POP:
+	case PUSH:
+		fprintf(stderr, " R%d", inst->D);
+		break;
+	case ILLOP:
+		fprintf(stderr,": 0x%x '", *inst->ireg);
+		unsigned char *c = (unsigned char*)inst->ireg;
+		if (isprint(c[1]))
+			fprintf(stderr, "%c", c[1]);
+		else
+			fprintf(stderr, "\\x%02x", c[1]);
+		if (isprint(c[0]))
+			fprintf(stderr, "%c'", c[0]);
+		else
+			fprintf(stderr, "\\x%02x'", c[0]);
+		break;
+
 	}
 }
 
@@ -197,7 +218,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->D |= 0x10;	// Restricted register 16 ≤ rd ≤ 31
 	}
 	// LDD and STD
-	else if ((opcode & 0xD008) == 0x8000) {
+	else if ((opcode & 0xD000) == 0x8000) {
 		inst->K = (opcode & 0x7) | ((opcode & 0xC00) >> 7)
 			| ((opcode & 0x2000) >> 8);
 		inst->ireg = (opcode & 0x08) ? RY : RZ;

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "debugterm.h"
 #include "core.h"
 #include "handlers.h"
@@ -11,7 +12,7 @@
 int debug_mode = 0;
 
 int runDebugTerm(void) {
-	fprintf(stderr, "Starting Debug Terminal\n");
+	fprintf(stderr, "\nStarting Debug Terminal\n");
 	debug_mode = 1;
 	// Print next instruction
 	pc++;
@@ -37,9 +38,20 @@ int runDebugTerm(void) {
 			return EXIT_ERROR;
 		}
 		scanf("%d", &i);
-		if (strcmp(c, "p") == 0) {
+		if (strcmp(c, "pr") == 0) {
 			i &= 0x1F;
-			fprintf(stderr, "R[%d]: %d\n", i, regs[i]);
+			fprintf(stderr, "R[%d]: %d", i, regs[i]);
+			if(isprint(regs[i]))
+				fprintf(stderr, " '%c'", regs[i]);
+
+			fprintf(stderr, "\n");
+		}
+		else if (strcmp(c, "p") == 0) {
+			fprintf(stderr, "MEM[%d]: %d", i, main_mem[i]);
+			if(isprint(regs[i]))
+				fprintf(stderr, " '%c'", main_mem[i]);
+
+			fprintf(stderr, "\n");
 		}
 		else if (strlen(c) > 0) {
 			fprintf(stderr, "Invalid Command\n");

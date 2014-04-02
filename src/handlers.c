@@ -808,15 +808,15 @@ int CALL_run(Instruction *inst) {
 
 int RET_run(Instruction *inst) {
 	UNUSED(inst);
-	pc = 0;
-	pc |= main_mem[++(*SP)];
-	pc |= main_mem[++(*SP)] << 8;
+	//pc = 0;
+	//pc |= main_mem[++(*SP)];
+	//pc |= main_mem[++(*SP)] << 8;
 	if (coredef->pc_size == 22) {
 		pc = *((uint32_t*)&main_mem[*SP + 1]) & 0x3FFFFF;
 		*SP += 3;
 	}
 	else {
-		pc = *((uint16_t*)&main_mem[*SP + 1]);
+		pc = *((uint16_t*)&main_mem[*SP + 1]) & 0xFFF;
 		*SP += 2;
 	}
 	if (*SP >= coredef->mem_size) {
@@ -836,7 +836,7 @@ int RETI_run(Instruction *inst) {
 		*SP += 3;
 	}
 	else {
-		pc = *((uint16_t*)&main_mem[*SP + 1]);
+		pc = *((uint16_t*)&main_mem[*SP + 1]) & 0xFFF;
 		*SP += 2;
 	}
 	if (*SP >= coredef->mem_size) {
@@ -1000,10 +1000,18 @@ int LDS_run(Instruction *inst) {
 }
 
 int LPM_run(Instruction *inst) {
-	//regs[inst->D] = ((uint8_t*)program->data)[*RZ];
-	//return inst->wsize;
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	switch(inst->mode) {
+	case 1:
+		regs[0] = readMem(*RZ);
+		break;
+	case 2:
+		regs[inst->D] = ((uint8_t*)program->data)[*RZ];
+		break;
+	case 3:
+		regs[inst->D] = ((uint8_t*)program->data)[(*RZ)++];
+		break;
+	}
+	return inst->wsize;
 }
 
 int ELPM_run(Instruction *inst) {
@@ -1151,6 +1159,8 @@ int ROR_run(Instruction *inst) {
 	CALC_N;
 	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
 	CALC_S;
+	// Save res
+	regs[inst->D] = res;
 	return inst->wsize;
 }
 

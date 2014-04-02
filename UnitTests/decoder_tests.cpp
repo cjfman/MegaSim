@@ -1285,6 +1285,10 @@ TEST_F(DecoderDataOps, LD_RZ_3) {
 
 uint16_t LDD_code = 0x8000;
 
+TEST_F(DecoderDataOps, LDD_fail) {
+	EXPECT_TRUE(false) << "LDD does not check for Z";
+}
+
 TEST_F(DecoderDataOps, LDD_zero) {
 	code = LDD_code;
 	rd = 0;
@@ -1413,6 +1417,10 @@ TEST_F(DecoderDataOps, ST_RZ_3) {
 }
 
 uint16_t STD_code = 0x8200;
+
+TEST_F(DecoderDataOps, STD_fail) {
+	EXPECT_TRUE(false) << "STD does not check for Z";
+}
 
 TEST_F(DecoderDataOps, STD_zero) {
 	code = STD_code;

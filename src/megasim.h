@@ -20,8 +20,10 @@ extern "C" {
 
 // A struct to hold options and arguments
 typedef struct Args {
-	bool hex; 	// Use hex file format
-	char* path;	// The path to the file
+	bool hex; 				// Use hex file format
+	char* path;				// The path to the file
+	uint16_t stderr_addr;	// The address mapped to stderr
+	uint16_t stdout_addr;	// The address mapped to stdout
 } Args;
 
 Args args;	// Global arguments struct
