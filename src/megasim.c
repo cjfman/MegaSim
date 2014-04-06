@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include <unistd.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <math.h>
@@ -27,6 +26,13 @@ int main(int argc, char* argv[]) {
 	stderr_addr = args.stderr_addr;
 	stdout_addr = args.stdout_addr;
 	coredef = &default_core;
+	if (args.p_count) {
+		fprintf(stderr, "Using the following peripherials\n");
+		int i;
+		for (i = 0; i < args.p_count; i++) {
+			fprintf(stderr, ">>%s\n", args.peripherals[i]);
+		}
+	}
 
 	// Load Program
 	program = loadData(&args);
@@ -262,12 +268,17 @@ void initArgs(Args* args) {
 	args->path = NULL;
 	args->stderr_addr = 0x00E0;
 	args->stdout_addr = 0x00E1;
+	args->peripherals = NULL;
+	args->p_count = 0;
 }
 
 static struct option long_options[] = {
 	/* These options set a flag*/
 	/* These options don't set a flag*/
-	{"hex", no_argument, 0, 'h'},
+	{"hex", 	no_argument, 		0, 'h'},
+	{"mapout", 	required_argument,	0, 'o'},
+	{"maperr", 	required_argument,	0, 'e'},
+	{"perphs",	required_argument,	0, 'p'},
 	/*end*/
 	{0, 0, 0, 0}
 };
@@ -276,10 +287,27 @@ int parseArgs(int argc, char* argv[], Args* args) {
 	initArgs(args);
 	int oindex = 0;
 	int c;
-	while ((c = getopt_long(argc, argv, "h", long_options, &oindex)) != -1) {
+	while ((c = getopt_long(argc, argv, "ho:e:p:", long_options, &oindex)) != -1) {
 		switch (c) {
 		case 'h':
 			args->hex = true;
+			break;
+		/*
+		case 'o':
+			if (!parseInt(&args->stdout_addr, optarg)) {
+				fprintf(stderr, "-o must be number\n");
+				return 1;
+			}
+			break;
+		case 'e':
+			if (!parseInt(&args->stderr_addr, optarg)) {
+				fprintf(stderr, "-e must be number\n");
+				return 1;
+			}
+			break;
+		// */
+		case 'p':
+			parsePeripherals(optarg);
 			break;
 		case '?':
 			if (isprint(optopt)) 
@@ -305,6 +333,48 @@ int parseArgs(int argc, char* argv[], Args* args) {
 	}
 	args->path = argv[optind];
 	return 0;	
+}
+
+int parsePeripherals(char* p) {
+	char *pos;
+	char *next;
+	// Count commas
+	int count = 0;
+	for (pos = p; *pos != '\0'; pos++) {
+		count += (*pos == ',');
+	}
+
+	// Allocate Memory
+	args.peripherals = (char**)malloc((count + 1)*sizeof(char**));
+	int i;
+	pos = p;
+	// Get comma seperated entries
+	for (i = 0; i < count; i++) {
+		next = strchr(pos, ',');
+		*(next++) = '\0';
+		args.peripherals[i] = pos;
+		pos = next;
+	}
+	// Get last entry
+	args.peripherals[i] = pos;
+	args.p_count = count + 1;
+	return 1;
+}
+
+// Returns 1 if success
+int parseInt(int* i, char* strint) {
+	char *c;
+	int radix;
+	if (strint[0] == '0') {
+		radix = (strint[1] == 'x') ? 16 : 8;
+	}
+	else {
+		radix = 10;
+	}
+	*i = strtol(strint, &c, radix);
+	if (*c != '\0')
+		return 0;
+	return 1;
 }
 
 //////////////////////////////////////////////////

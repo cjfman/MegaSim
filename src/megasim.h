@@ -24,6 +24,8 @@ typedef struct Args {
 	char* path;				// The path to the file
 	uint16_t stderr_addr;	// The address mapped to stderr
 	uint16_t stdout_addr;	// The address mapped to stdout
+	char** peripherals;		// A list of exacutable periferals
+	int p_count;		// The number of periferals
 } Args;
 
 Args args;	// Global arguments struct
@@ -32,6 +34,9 @@ Args args;	// Global arguments struct
 void initArgs(Args* args);
 // Parses the arguments to the program
 int parseArgs(int argc, char* argv[], Args* args);
+// Parses the peripheral option
+int parsePeripherals(char* p);
+int parseInt(int* i, char* c);
 
 
 //////////////////
