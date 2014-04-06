@@ -1,6 +1,7 @@
 // peripherals.h
 
-#include <stdbool>
+#include <stdbool.h>
+
 typedef struct Peripheral {
 	char* name;
 	int wr_pipefd;
@@ -11,7 +12,7 @@ typedef struct Peripheral {
 
 Peripheral **peripherals;
 int num_perphs;
-int *periph_errors;
+int *perph_errors;
 extern int perph_flag;
 
 int openPeripherals(char** perphs, int p_count);

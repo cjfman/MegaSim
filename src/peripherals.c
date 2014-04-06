@@ -8,14 +8,21 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "peripherals.h"
+
+// OS X uses MAP_ANON
+// Linux has depricated MAP_ANON and prefers MAP_ANONYMOUS
+#ifdef MAP_ANONYMOUS
+#define MAP_ANON MAP_ANONYMOUS
+#endif
 
 int perph_flag = false;
 
 int openPeripherals(char** perphs, int p_count) {
 	int i;
 	int errors = 0;
-	peripherals = (peripherals**)malloc(p_count*sizeof(Peripheral*));
-	perf_error = (int*)malloc(p_count*sizeof(int));
+	peripherals = (Peripheral**)malloc(p_count*sizeof(Peripheral*));
+	perph_errors = (int*)malloc(p_count*sizeof(int));
 	for (i = 0; i < p_count; i++) {
 		int rd_pipefd[2];
 		int wr_pipefd[2];
@@ -27,7 +34,7 @@ int openPeripherals(char** perphs, int p_count) {
 		// Use shared memory space so that the peripheral
 		// can report that it has started successfully
 		Peripheral *perph = (Peripheral*)mmap(NULL, sizeof(Peripheral),
-			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
 		peripherals[num_perphs] = perph;
 		perph->live = false; 	// Assume false
 		// Start fork
@@ -44,7 +51,7 @@ int openPeripherals(char** perphs, int p_count) {
 			dup2(wr_pipefd[0], 0);	// Replace stdin
 			dup2(rd_pipefd[1], 1); 	// Replace stdout
 			char** argv;
-			argv = (char**)malloc(2*sizeof(char*))
+			argv = (char**)malloc(2*sizeof(char*));
 			argv[0] = perphs[i];
 			argv[1] = (char*)malloc(2*sizeof(char));
 			strcpy(argv[1], "\0");
@@ -68,11 +75,11 @@ int openPeripherals(char** perphs, int p_count) {
 
 int closePeripherals(void) {
 	int i, exit_status;
-	for (i = 0; i < num_periph; i++) {
+	for (i = 0; i < num_perphs; i++) {
 		waitpid(peripherals[i]->cpid, &exit_status, 0);
 		free(peripherals[i]);
 	}
 	free(peripherals);
-	free(perf_errors);
+	free(perph_errors);
 	return 0;
 }
