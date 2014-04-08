@@ -158,7 +158,6 @@ void memoryNotification(Peripheral* perph, uint16_t addr, uint8_t data) {
 	c[1] = addr & 0x00FF;
 	c[2] = addr >> 8;
 	c[3] = data;
-	//printf("\nMARCO 0x%x, %d\n", addr, __LINE__);
 	sendMessage(perph, c, 4);
 }
 
@@ -183,21 +182,14 @@ char readBytes(Peripheral *p, int msize) {
 char readMessage(Peripheral *p) {
 	char msize;
 	int count = read(p->rdfd, &msize, 1);	// Read message size
-	if (count != 1) return 0;			// Message size not specified
+	if (count != 1) return 0;				// Message size not specified
 	count = read(p->rdfd, message, msize);	// Read message
-	if (count < msize) return 0;		// Pipe didn't contain full message
-	message[count] = '\0';				// Null terminate
+	if (count < msize) return 0;			// Pipe didn't contain full message
+	message[count] = '\0';					// Null terminate
 	return count;
 }
 
 void sendChar(Peripheral *p, char c) {
-	// Create null terminated string
-	/*
-	char msg[2];
-	msg[0] = c;
-	msg[1] = '\0';
-	sendMessage(p, msg);
-	// */
 	sendMessage(p, &c, 1);
 }
 

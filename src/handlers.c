@@ -214,7 +214,8 @@ int ADD_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Add with Carry
@@ -236,7 +237,8 @@ int ADC_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 	
 // Add Immediate to Word
@@ -254,7 +256,8 @@ int ADIW_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	*inst->ireg = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Subtract
@@ -276,7 +279,8 @@ int SUB_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Subtract Immediate
@@ -298,7 +302,8 @@ int SUBI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Subtract with Carry
@@ -320,7 +325,8 @@ int SBC_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Subtract with Carry Immediate
@@ -342,7 +348,8 @@ int SBCI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Subtract Immediate from Word
@@ -360,7 +367,8 @@ int SBIW_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	*inst->ireg = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Bitwise AND
@@ -375,7 +383,8 @@ int AND_run(Instruction *inst) {
 	CALC_S;
 	// Save Result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Bitwise AND with Immediate
@@ -390,7 +399,8 @@ int ANDI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Bitwise OR
@@ -405,7 +415,8 @@ int OR_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Bitwise OR with Immediate
@@ -420,7 +431,8 @@ int ORI_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Bitwise XOR
@@ -435,7 +447,8 @@ int EOR_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // One's Complement
@@ -451,7 +464,8 @@ int COM_run(Instruction *inst) {
 	CALC_S;
 	// Store result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Two's Complement
@@ -470,7 +484,8 @@ int NEG_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Increment
@@ -485,7 +500,8 @@ int INC_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Decrement
@@ -499,13 +515,15 @@ int DEC_run(Instruction *inst) {
 	CALC_Z;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Is LDI
 /*int SER_run(Instruction *inst) {
 	regs[inst-D] = 0xFF;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }*/
 
 // Multiply Unsigned
@@ -517,7 +535,8 @@ int MUL_run(Instruction *inst) {
 	CALC_Z;
 	// Store result
 	regps[0] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Multiply Signed
@@ -542,7 +561,8 @@ int MULS_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Multiply Signed with Unsigned
@@ -564,7 +584,8 @@ int MULSU_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Fractional Multiply Unsigned
@@ -577,7 +598,8 @@ int FMUL_run(Instruction *inst) {
 	CALC_Z;
 	// Store result
 	regps[0] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Fractional Multiply Signed
@@ -603,7 +625,8 @@ int FMULS_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Fractional Multiply Signed with Unsigned
@@ -626,7 +649,8 @@ int FMULSU_run(Instruction *inst) {
 	sreg[CREG] = bit;
 	CALC_Z;
 	regps[0] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 #ifdef XMEGA_SUPPORTED
@@ -850,33 +874,37 @@ int RETI_run(Instruction *inst) {
 int SBRC_run(Instruction *inst) {
 	uint8_t set = (regs[inst->D] >> inst->R) & 0x01;
 	if (!set) {
-		return inst->wsize + (inst + 1)->wsize;
+		pc += inst->wsize + (inst + 1)->wsize;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SBRS_run(Instruction *inst) {
 	uint8_t set = (regs[inst->D] >> inst->R) & 0x01;
 	if (set) {
-		return inst->wsize + (inst + 1)->wsize;
+		pc += inst->wsize + (inst + 1)->wsize;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SBIC_run(Instruction *inst) {
 	uint8_t set = (io_mem[inst->A] >> inst->R) & 0x01;
 	if (!set) {
-		return inst->wsize + (inst + 1)->wsize;
+		pc += inst->wsize + (inst + 1)->wsize;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SBIS_run(Instruction *inst) {
 	uint8_t set = (io_mem[inst->A] >> inst->R) & 0x01;
 	if (set) {
-		return inst->wsize + (inst + 1)->wsize;
+		pc += inst->wsize + (inst + 1)->wsize;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int CP_run(Instruction *inst) {
@@ -895,7 +923,8 @@ int CP_run(Instruction *inst) {
 	CALC_Z;
 	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
 	CALC_S;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int CPC_run(Instruction *inst) {
@@ -914,7 +943,8 @@ int CPC_run(Instruction *inst) {
 	CALC_Z;
 	sreg[CREG] = (!rd7 && rr7) || (rr7 && res7) || (res7 && !rd7);
 	CALC_S;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int CPI_run(Instruction *inst) {
@@ -935,14 +965,16 @@ int CPI_run(Instruction *inst) {
 	CALC_Z;
 	sreg[CREG] = (!rd7 && k7) || (k7 && res7) || (res7 && rd7);
 	CALC_S;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int CPSE_run(Instruction *inst) {
 	if (regs[inst->D] == regs[inst->R]) {
-		return inst->wsize + (inst + 1)->wsize;
+		pc += inst->wsize + (inst + 1)->wsize;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int BRx_run(Instruction *inst) {
@@ -952,51 +984,60 @@ int BRx_run(Instruction *inst) {
 	uint8_t branch = (sreg[inst->R] && inst->D) 
 		|| !(sreg[inst->R] || inst->D);
 	if (branch) {
-		return inst->K + inst->wsize;
+		pc += inst->K + inst->wsize;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 ////// Data Transfer Instructions//////////
 
 int MOV_run(Instruction *inst) {
 	regs[inst->D] = regs[inst->R];
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int MOVW_run(Instruction *inst) {
 	regps[inst->D >> 1] = regps[inst->R >> 1];
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LD_run(Instruction *inst) {
 	regs[inst->D] = readMem(*RX);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LD2_run(Instruction *inst) {
 	regs[inst->D] = readMem((*inst->ireg)++);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LD3_run(Instruction *inst) {
 	regs[inst->D] = readMem(--(*inst->ireg));
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LDD_run(Instruction *inst) {
 	regs[inst->D] = readMem(*inst->ireg + inst->K);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LDI_run(Instruction *inst) {
 	regs[inst->D] = inst->K;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LDS_run(Instruction *inst) {
 	regs[inst->D] = readMem(inst->AL);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int LPM_run(Instruction *inst) {
@@ -1011,7 +1052,8 @@ int LPM_run(Instruction *inst) {
 		regs[inst->D] = ((uint8_t*)program->data)[(*RZ)++];
 		break;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int ELPM_run(Instruction *inst) {
@@ -1026,47 +1068,56 @@ int SPM_run(Instruction *inst) {
 
 int ST_run(Instruction *inst) {
 	writeMem(*RX, regs[inst->D]);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int ST2_run(Instruction *inst) {
 	writeMem((*inst->ireg)++, regs[inst->D]);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int ST3_run(Instruction *inst) {
 	writeMem(--(*inst->ireg), regs[inst->D]);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int STD_run(Instruction *inst) {
 	writeMem(*inst->ireg + inst->K, regs[inst->D]);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int STS_run(Instruction *inst) {
 	writeMem(inst->AL, regs[inst->D]);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int IN_run(Instruction *inst) {
 	regs[inst->D] = io_mem[inst->A];
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int OUT_run(Instruction *inst) {
 	io_mem[inst->A] = regs[inst->D];
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int POP_run(Instruction *inst) {
 	regs[inst->D] = main_mem[++(*SP)];
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int PUSH_run(Instruction *inst) {
 	main_mem[(*SP)--] = regs[inst->D];
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 #ifdef XMEGA_SUPPORTED
@@ -1109,7 +1160,8 @@ int LSL_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Logical Shift Right
@@ -1128,7 +1180,8 @@ int LSR_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Rotate Left Through Carry
@@ -1145,7 +1198,8 @@ int ROL_run(Instruction *inst) {
 	sreg[CREG] = rd7;
 	sreg[VREG] = sreg[NREG] ^ sreg[CREG];
 	CALC_S;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int ROR_run(Instruction *inst) {
@@ -1161,7 +1215,8 @@ int ROR_run(Instruction *inst) {
 	CALC_S;
 	// Save res
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 // Arithmetic Shift Right
@@ -1180,24 +1235,28 @@ int ASR_run(Instruction *inst) {
 	CALC_S;
 	// Save result
 	regs[inst->D] = res;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SWAP_run(Instruction *inst) {
 	uint8_t swap = regs[inst->D] & 0x0F;
 	regs[inst->D] >>= 4;
 	regs[inst->D] |= swap << 4;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SBI_run(Instruction *inst) {
 	io_mem[inst->A] |= (0x01 << inst->R);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int CBI_run(Instruction *inst) {
 	io_mem[inst->A] &= ~(0x01 << inst->R);
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int BST_run(Instruction *inst) {
@@ -1208,7 +1267,8 @@ int BST_run(Instruction *inst) {
 	else {
 		sreg[TREG] = 0;
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int BLD_run(Instruction *inst) {
@@ -1219,30 +1279,36 @@ int BLD_run(Instruction *inst) {
 	else {
 		regs[inst->D] &= ~(0x01 << inst->R);
 	}
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SEx_run(Instruction *inst) {
 	sreg[inst->R] = true;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int CLx_run(Instruction *inst) {
 	sreg[inst->R] = false;
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 ////// MCU Control Instructions //////////////
 
 int BREAK_run(Instruction *inst) {
 	UNUSED(inst);
-	if (debug_mode)
-		return 1;	// Do not recurse
+	if (debug_mode) {
+		pc += inst->wsize;
+		return 0;	// Do not recurse
+	}
 	return runDebugTerm();
 }
 
 int NOP_run(Instruction *inst) {
-	return inst->wsize;
+	pc += inst->wsize;
+	return 0;
 }
 
 int SLEEP_run(Instruction *inst) {

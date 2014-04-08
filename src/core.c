@@ -52,11 +52,10 @@ int runAVR(void) {
 		printInstruction(&inst);
 		fprintf(stderr, "\n");
 #endif // DEBUG
-		int result = handlers[inst.op](&inst);
-		if (result < 0) {
-			return result;
+		int error = handlers[inst.op](&inst);
+		if (error < 0) {
+			return error;
 		}
-		pc += result;
 		if (pc >= program->size) {
 			printf("%d:%d", program->size, pc);
 			return PC_ERROR;
@@ -90,7 +89,6 @@ void writeMem(uint16_t addr, uint8_t data) {
 	}
 	// Check for listeners
 	if (mem_listeners[addr]) {
-		//printf("\nMARCO 0x%x, %d\n", addr, __LINE__);
 		memoryNotification(mem_listeners[addr], addr, data);
 	}
 }

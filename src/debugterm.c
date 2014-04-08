@@ -63,11 +63,10 @@ int runDebugTerm(void) {
 
 int step(void) {
 	Instruction inst = program->instructions[pc];
-	int result = handlers[inst.op](&inst);
-	if (result < 0) {
-		return result;
+	int error = handlers[inst.op](&inst);
+	if (error < 0) {
+		return error;
 	}   
-	pc += result;
 	if (pc >= program->size) {
 		return PC_ERROR;
 	} 
