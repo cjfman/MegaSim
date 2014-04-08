@@ -2,18 +2,22 @@
 
 #include <stdbool.h>
 
+#define MAX_MSG 255
+
 typedef struct Peripheral {
 	char* name;
-	int wr_pipefd;
-	int rd_pipefd;
+	int wrfd;		// Write pipe file descriptor
+	int rdfd;		// Read pipe file descriptor
 	int cpid;
 	volatile bool live;
 } Peripheral;
 
 Peripheral **peripherals;
 int num_perphs;
-int *perph_errors;
-extern int perph_flag;
+bool *perph_errors;
+extern bool perph_flag;
 
 int openPeripherals(char** perphs, int p_count);
 int closePeripherals(void);
+void forceClosePeripherals(void);
+void startPeripherals(void);

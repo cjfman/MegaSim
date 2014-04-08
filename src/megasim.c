@@ -13,12 +13,16 @@
 #include <getopt.h>
 #include <ctype.h>
 #include <math.h>
+#include <signal.h>
+#include <unistd.h>
 #include "megasim.h"
 #include "core.h"
 #include "devices.h"
 #include "decoder.h"
+#include "peripherals.h"
 
 int main(int argc, char* argv[]) {
+	signal(SIGINT, intHandler);
 	int error = 0;
 	// Parse arguments
 	error = parseArgs(argc, argv, &args);
@@ -28,10 +32,17 @@ int main(int argc, char* argv[]) {
 	coredef = &default_core;
 	if (args.p_count) {
 		fprintf(stderr, "Using the following peripherials\n");
+		openPeripherals(args.peripherals, args.p_count);
+		/*
 		int i;
 		for (i = 0; i < args.p_count; i++) {
-			fprintf(stderr, ">>%s\n", args.peripherals[i]);
+			const char* good = (perph_errors[i]) ? "failed" : "launched";
+			fprintf(stderr, ">>%s...%s\n", args.peripherals[i], good);
 		}
+		// Allow time for peripherals to launch
+		sleep(3);
+		startPeripherals();
+		// */
 	}
 
 	// Load Program
@@ -67,7 +78,17 @@ int main(int argc, char* argv[]) {
 	free(program->data);
 	free(program->instructions);
 	free(program);
+	closePeripherals();
 	return error;
+}
+
+////////////////////////////////////////
+// Signal Handlers
+////////////////////////////////////////
+
+void intHandler(int val) {
+	fprintf(stderr, "\nINT Signal Caught\n");
+	exit(0);
 }
 
 ///////////////////////////////////////////

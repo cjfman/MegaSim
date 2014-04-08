@@ -8,7 +8,8 @@ SOURCES = megasim.c \
 		  handlers.c \
 		  debugterm.c \
 		  devices.c \
-		  opcode_defs.c
+		  opcode_defs.c \
+		  peripherals.c
 
 ## FLAGS
 FLAGS = -g -O0 #-D DEBUG

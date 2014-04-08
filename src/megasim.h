@@ -14,6 +14,11 @@ extern "C" {
 #include <inttypes.h>
 #include "core.h"
 
+/////////////////
+// Signals
+/////////////////
+void intHandler(int val);
+
 //////////////////
 // Option Parsing
 //////////////////
