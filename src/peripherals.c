@@ -52,7 +52,7 @@ void startPeripheral(Peripheral *p);
 // Message Passing
 char message[MAX_MSG];
 void sendChar(Peripheral *p, char c);
-void sendMessage(Peripheral *p, char* msg);
+void sendMessage(Peripheral *p, char* msg, int len);
 char readMessage(Peripheral *p);
 
 // Command Handlers
@@ -150,6 +150,14 @@ void forceClosePeripherals(void) {
 	free(perph_errors);
 }
 
+void memoryNotification(Peripheral* perph, uint8_t addr, uint8_t data) {
+	char c[3];
+	c[0] = LMP_DATAM;
+	c[1] = addr;
+	c[2] = data;
+	sendMessage(perph, c, 3);
+}
+
 char readCommand(Peripheral *p) {
 	char c = '\0';
 	read(p->rdfd, &c, 1);
@@ -175,14 +183,17 @@ char readMessage(Peripheral *p) {
 
 void sendChar(Peripheral *p, char c) {
 	// Create null terminated string
+	/*
 	char msg[2];
 	msg[0] = c;
 	msg[1] = '\0';
 	sendMessage(p, msg);
+	// */
+	sendMessage(p, &c, 1);
 }
 
-void sendMessage(Peripheral *p, char* msg) {
-	int count = write(p->wrfd, msg, strlen(msg) + 1);
+void sendMessage(Peripheral *p, char* msg, int len) {
+	int count = write(p->wrfd, msg, len);
 	if (count <= 0) {
 		p->live = false;
 		switch(count) {
