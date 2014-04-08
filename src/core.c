@@ -7,9 +7,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 #include "core.h"
 #include "handlers.h"
 #include "decoder.h"
+#include "peripherals.h"
 
 #undef DEBUG
 
@@ -28,6 +31,11 @@ void setupMemory(void) {
 	SPL  = (uint8_t*) SP;
 	SPH  = SPL + 1;
 	EIND = main_mem + coredef->EIND_addr;
+	// Listeners
+	gl_flag = false;
+	mem_listeners = 
+		(Peripheral**)malloc(coredef->mem_size*sizeof(Peripheral*));
+	memset(mem_listeners, 0, coredef->mem_size*sizeof(Peripheral*));
 }
 
 void teardownMemory(void) {
@@ -79,6 +87,11 @@ void writeMem(uint16_t addr, uint8_t data) {
 	}
 	else {
 		main_mem[addr] = data;
+	}
+	// Check for listeners
+	if (mem_listeners[addr]) {
+		//printf("\nMARCO 0x%x, %d\n", addr, __LINE__);
+		memoryNotification(mem_listeners[addr], addr, data);
 	}
 }
 

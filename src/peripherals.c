@@ -11,6 +11,7 @@
 //#include <sys/types.h>
 //#include <sys/wait.h>
 #include "peripherals.h"
+#include "core.h"
 
 // OS X uses MAP_ANON
 // Linux has depricated MAP_ANON and prefers MAP_ANONYMOUS
@@ -58,6 +59,7 @@ char readMessage(Peripheral *p);
 // Command Handlers
 void handleCommand(Peripheral *p, char cmd);
 void printHandler(Peripheral *p);
+void setmHandler(Peripheral *perph);
 
 int openPeripherals(char** perphs, int p_count) {
 	signal(SIGPIPE, SIG_IGN);
@@ -150,12 +152,14 @@ void forceClosePeripherals(void) {
 	free(perph_errors);
 }
 
-void memoryNotification(Peripheral* perph, uint8_t addr, uint8_t data) {
-	char c[3];
+void memoryNotification(Peripheral* perph, uint16_t addr, uint8_t data) {
+	char c[4];
 	c[0] = LMP_DATAM;
-	c[1] = addr;
-	c[2] = data;
-	sendMessage(perph, c, 3);
+	c[1] = addr & 0x00FF;
+	c[2] = addr >> 8;
+	c[3] = data;
+	//printf("\nMARCO 0x%x, %d\n", addr, __LINE__);
+	sendMessage(perph, c, 4);
 }
 
 char readCommand(Peripheral *p) {
@@ -164,6 +168,11 @@ char readCommand(Peripheral *p) {
 	return c;
 }
 
+char readChar(Peripheral *p) {
+	char c = '\0';
+	read(p->rdfd, &c, 1);
+	return c;
+}
 
 char readBytes(Peripheral *p, int msize) {
 	int count = read(p->rdfd, message, msize);	// Read message
@@ -258,6 +267,8 @@ void handleCommand(Peripheral *p, char c) {
 		printHandler(p);
 		break;
 	case LMP_SETM:
+		setmHandler(p);
+		break;
 	case LMP_SETP:
 	case LMP_SETPN:
 	case LMP_CLAIM:
@@ -284,4 +295,12 @@ void printHandler(Peripheral *p) {
 	}
 	sendChar(p, LMP_ACK);
 	fprintf(stderr, "%s says: %s\n", p->name, message);
+}
+
+void setmHandler(Peripheral *perph) {
+	int count = readBytes(perph, 2);
+	if (count != 2) return;				// Invalid message
+	uint16_t addr = *((uint16_t*)message);
+	mem_listeners[addr] = perph;
+	sendChar(perph, LMP_ACK);
 }

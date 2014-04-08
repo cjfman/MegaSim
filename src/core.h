@@ -15,6 +15,7 @@ extern "C" {
 #include <stdbool.h>
 #include "devices.h"
 #include "decoder.h"
+#include "peripherals.h"
 
 // MACROS
 #define GETBIT(var, index) ((var >> index) 0x01)
@@ -71,6 +72,10 @@ uint16_t *SP;	// Stack pointer
 uint8_t *SPH;	// Stack pointer high
 uint8_t *SPL;	// Stack pointer low
 
+// Listeners
+bool gl_flag; 			// Global listener flag
+Peripheral **mem_listeners;	// Array of memory listeners
+Peripheral **pin_listeners;	// Array of pin listeners
 
 ////////////////////////
 // Device Properties

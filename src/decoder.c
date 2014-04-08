@@ -44,22 +44,44 @@ void decodeAllInstructions(void) {
 }
 
 void printInstruction(Instruction *inst) {
+	char *c;
 	fprintf(stderr, "%s", opcode_strings[inst->op]);
 	switch(inst->op) {
+	// RD with word
 	case LDS:
-		fprintf(stderr, ": R%d ", inst->D);
+		fprintf(stderr, " R%d ", inst->D);
 	case JMP:
 	case CALL:
-		fprintf(stderr, ": AL: 0x%x", inst->AL);
+		fprintf(stderr, ": AL=0x%x", inst->AL);
 		break;
+	// RD with K
+	case LDI:
+		fprintf(stderr, " R%d ", inst->D);
 	case RJMP:
 	case RCALL:
 	case BRx:
-		fprintf(stderr, ": K: %d", inst->K);
+		fprintf(stderr, ": K=%d", inst->K);
 		break;
+	// ireg and RD
+	case STD:
+		//*
+		c = (inst->ireg == RW) ? "RW" :
+				  (inst->ireg == RX) ? "RX" :
+				  (inst->ireg == RY) ? "RY" :
+				  (inst->ireg == RZ) ? "RZ" :
+				                       "R?" ;
+		// */
+		fprintf(stderr, " %s+%d, R%d", c, inst->K, inst->D);
+		break;
+	// RD
 	case POP:
 	case PUSH:
 		fprintf(stderr, " R%d", inst->D);
+		break;
+	// RD and RR
+	case EOR:
+	case MOV:
+		fprintf(stderr, " R%d, R%d", inst->D, inst->R);
 		break;
 	case ILLOP:
 		fprintf(stderr,": 0x%x '", *inst->ireg);
@@ -73,7 +95,8 @@ void printInstruction(Instruction *inst) {
 		else
 			fprintf(stderr, "\\x%02x'", c[0]);
 		break;
-
+	default:
+		break;
 	}
 }
 

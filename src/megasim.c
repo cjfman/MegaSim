@@ -30,6 +30,20 @@ int main(int argc, char* argv[]) {
 	stderr_addr = args.stderr_addr;
 	stdout_addr = args.stdout_addr;
 	coredef = &default_core;
+
+	// Load Program
+	program = loadData(&args);
+	if (!program) {
+		return 1;
+	}
+	fprintf(stderr, "Program loaded. %d bytes\n", program->size*2);
+
+	// Setup core
+	setupMemory();
+	decodeAllInstructions();
+	fprintf(stderr, "All instructions decoded\n");
+
+	// Start Peripherals
 	if (args.p_count) {
 		fprintf(stderr, "Using the following peripherials\n");
 		openPeripherals(args.peripherals, args.p_count);
@@ -45,12 +59,6 @@ int main(int argc, char* argv[]) {
 		// */
 	}
 
-	// Load Program
-	program = loadData(&args);
-	if (!program) {
-		return 1;
-	}
-	fprintf(stderr, "Program loaded. %d bytes\n", program->size*2);
 	/*
 	int i;
 	for (i = 0; i < 64; i++) {
@@ -61,11 +69,6 @@ int main(int argc, char* argv[]) {
 	}
 	// */
 
-	// Setup core
-	setupMemory();
-	decodeAllInstructions();
-	fprintf(stderr, "All instructions decoded\n");
-	
 	// Start simulator
 	fprintf(stderr, "Starting simulator\n");
 	error = runAVR();
