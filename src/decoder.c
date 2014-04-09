@@ -21,6 +21,8 @@ void makeBlankInstruction(Instruction *inst) {
 	inst->op = 0;
 	inst->R = 0;
 	inst->D = 0;
+	inst->rrp = 0;
+	inst->rdp = 0;
 	inst->mode = 0;
 	inst->A = 0;
 	inst->K = 0;
@@ -607,4 +609,6 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		// Point ireg to the illegal op
 		inst->ireg = opcode_p;
 	}
+	inst->rrp = regs + inst->R;
+	inst->rdp = regs + inst->D;
 }

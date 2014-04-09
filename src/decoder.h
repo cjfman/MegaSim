@@ -24,6 +24,8 @@ typedef struct Instuction {
 	uint8_t op;		// The basic operation
 	uint8_t R;		// The source register. Sometimes bit index. 
 	uint8_t D;		// The destination/source register. Sometimes bit value.
+	uint8_t *rrp;	// A pointer to the Rr register
+	uint8_t *rdp;	// A pointer to the Rd register
 	uint8_t mode;	// Mode of the operation
 	int16_t A;		// Address and offset
 	uint32_t AL;	// Long Address
