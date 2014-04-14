@@ -2,6 +2,7 @@
 //
 //
 
+
 #include <inttypes.h>
 #include "gtest/gtest.h"
 #include "opcode_defs.h"
@@ -1074,10 +1075,11 @@ TEST_F(DecoderBranchOps, BRBS_num) {
 	EXPECT_EQ(mode_L, inst.mode); \
 	EXPECT_EQ(1, inst.wsize);
 
-#define EXPECT_INST_Q(inst, op_L, d, q) \
+#define EXPECT_INST_Q_IREG(inst, op_L, d, q, reg) \
 	EXPECT_EQ(op_L, inst.op); \
 	EXPECT_EQ(d, inst.D); \
 	EXPECT_EQ(q, inst.K); \
+	EXPECT_EQ(reg, inst.ireg); \
 	EXPECT_EQ(1, inst.wsize);
 
 #define EXPECT_INST_ONE_MODE(inst, op_L, d, mode_L) \
@@ -1285,35 +1287,31 @@ TEST_F(DecoderDataOps, LD_RZ_3) {
 
 uint16_t LDD_code = 0x8000;
 
-TEST_F(DecoderDataOps, LDD_fail) {
-	EXPECT_TRUE(false) << "LDD does not check for Z";
-}
-
 TEST_F(DecoderDataOps, LDD_zero) {
-	code = LDD_code;
-	rd = 0;
+	code = LDD_code | 0x8;	// RY
+	rd = 1;
 	q = 0;
 	code |= encode_rd(rd) | encode_q(q);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_Q(inst, LDD, rd, q);
+	EXPECT_INST_Q_IREG(inst, LDD, rd, q, RY);
 }
 
 TEST_F(DecoderDataOps, LDD_num_1) {
-	code = LDD_code;
+	code = LDD_code | 0x8;
 	rd = 0x1A;
 	q = 0x26;
 	code |= encode_rd(rd) | encode_q(q);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_Q(inst, LDD, rd, q);
+	EXPECT_INST_Q_IREG(inst, LDD, rd, q, RY);
 }
 
 TEST_F(DecoderDataOps, LDD_num_2) {
-	code = LDD_code;
+	code = LDD_code;	// RZ
 	rd = 0x05;
 	q = 0x19;
 	code |= encode_rd(rd) | encode_q(q);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_Q(inst, LDD, rd, q);
+	EXPECT_INST_Q_IREG(inst, LDD, rd, q, RZ);
 }
 
 uint16_t STS_code = 0x9200;
@@ -1418,35 +1416,31 @@ TEST_F(DecoderDataOps, ST_RZ_3) {
 
 uint16_t STD_code = 0x8200;
 
-TEST_F(DecoderDataOps, STD_fail) {
-	EXPECT_TRUE(false) << "STD does not check for Z";
-}
-
 TEST_F(DecoderDataOps, STD_zero) {
-	code = STD_code;
+	code = STD_code;	// RZ
 	rd = 0;
 	q = 0;
 	code |= encode_rd(rd) | encode_q(q);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_Q(inst, STD, rd, q);
+	EXPECT_INST_Q_IREG(inst, STD, rd, q, RZ);
 }
 
 TEST_F(DecoderDataOps, STD_num_1) {
-	code = STD_code;
+	code = STD_code;	// RZ
 	rd = 0x1A;
 	q = 0x26;
 	code |= encode_rd(rd) | encode_q(q);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_Q(inst, STD, rd, q);
+	EXPECT_INST_Q_IREG(inst, STD, rd, q, RZ);
 }
 
 TEST_F(DecoderDataOps, STD_num_2) {
-	code = STD_code;
+	code = STD_code | 0x8;	// RY
 	rd = 0x05;
 	q = 0x19;
 	code |= encode_rd(rd) | encode_q(q);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_Q(inst, STD, rd, q);
+	EXPECT_INST_Q_IREG(inst, STD, rd, q, RY);
 }
 
 uint16_t LPM_code = 0x95C8;

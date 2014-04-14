@@ -1,4 +1,6 @@
-// peripherals.h
+// peripherals.c
+
+#ifndef NO_PERPHS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,6 +163,22 @@ void memoryNotification(Peripheral* perph, uint16_t addr, uint8_t data) {
 	sendMessage(perph, c, 4);
 }
 
+void portNotification(Peripheral* perph, uint16_t port, uint8_t data) {
+	char c[3];
+	c[0] = LMP_DATAP;
+	c[1] = port & 0xFF;
+	c[2] = data;
+	sendMessage(perph, c, 3);
+}
+
+void pinNotification(Peripheral* perph, uint16_t pin, uint8_t data) {
+	char c[3];
+	c[0] = LMP_DATAPN;
+	c[1] = pin & 0xFF;
+	c[2] = data;
+	sendMessage(perph, c, 3);
+}
+
 char readCommand(Peripheral *p) {
 	char c = '\0';
 	read(p->rdfd, &c, 1);
@@ -296,3 +314,5 @@ void setmHandler(Peripheral *perph) {
 	mem_listeners[addr] = perph;
 	sendChar(perph, LMP_ACK);
 }
+
+#endif  // NO_PERPHS

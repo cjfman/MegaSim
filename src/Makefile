@@ -12,7 +12,10 @@ SOURCES = megasim.c \
 		  peripherals.c
 
 ## FLAGS
-FLAGS = -g -O0 #-D DEBUG
+DEFINES = #-D NO_PERPHS
+	     #-D DEBUG
+
+FLAGS = -g -O0 $(DEFINES)
 CCFLAGS = $(FLAGS)
 CXXFLAGS =
 

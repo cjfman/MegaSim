@@ -19,7 +19,10 @@
 #include "core.h"
 #include "devices.h"
 #include "decoder.h"
+
+#ifndef NO_PERPHS
 #include "peripherals.h"
+#endif
 
 int main(int argc, char* argv[]) {
 	signal(SIGINT, intHandler);
@@ -44,6 +47,7 @@ int main(int argc, char* argv[]) {
 	fprintf(stderr, "All instructions decoded\n");
 
 	// Start Peripherals
+#ifndef NO_PERPHS
 	if (args.p_count) {
 		fprintf(stderr, "Using the following peripherials\n");
 		openPeripherals(args.peripherals, args.p_count);
@@ -58,6 +62,7 @@ int main(int argc, char* argv[]) {
 		startPeripherals();
 		// */
 	}
+#endif // NO_PERPHS
 
 	/*
 	int i;
@@ -81,7 +86,9 @@ int main(int argc, char* argv[]) {
 	free(program->data);
 	free(program->instructions);
 	free(program);
+#ifndef NO_PERPHS
 	closePeripherals();
+#endif
 	return error;
 }
 
@@ -292,8 +299,10 @@ void initArgs(Args* args) {
 	args->path = NULL;
 	args->stderr_addr = 0x00E0;
 	args->stdout_addr = 0x00E1;
+#ifndef NO_PERPHS
 	args->peripherals = NULL;
 	args->p_count = 0;
+#endif // NO_PERPHS
 }
 
 static struct option long_options[] = {
@@ -302,7 +311,9 @@ static struct option long_options[] = {
 	{"hex", 	no_argument, 		0, 'h'},
 	{"mapout", 	required_argument,	0, 'o'},
 	{"maperr", 	required_argument,	0, 'e'},
+#ifndef NO_PERPHS
 	{"perphs",	required_argument,	0, 'p'},
+#endif // NO_PERPHS
 	/*end*/
 	{0, 0, 0, 0}
 };
@@ -331,7 +342,11 @@ int parseArgs(int argc, char* argv[], Args* args) {
 			break;
 		// */
 		case 'p':
+#ifndef NO_PERPHS
 			parsePeripherals(optarg);
+#else
+			fprintf(stderr, "ALERT: Peripherals disabled!\n");
+#endif
 			break;
 		case '?':
 			if (isprint(optopt)) 
@@ -359,6 +374,7 @@ int parseArgs(int argc, char* argv[], Args* args) {
 	return 0;	
 }
 
+#ifndef NO_PERPHS
 int parsePeripherals(char* p) {
 	char *pos;
 	char *next;
@@ -384,6 +400,7 @@ int parsePeripherals(char* p) {
 	args.p_count = count + 1;
 	return 1;
 }
+#endif // NO_PERPHS
 
 // Returns 1 if success
 int parseInt(int* i, char* strint) {

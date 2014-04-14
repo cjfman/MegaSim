@@ -20,12 +20,12 @@ TARGET=megasimtests
 GTEST_DIR = gtest
 
 # Where to find user code.
-USER_DIR = ../src
+USER_DIR =../src
 
 # Tests
 TESTS = opcode_test.cpp \
-		decoder_tests.cpp 
-		#handler_tests.cpp
+		decoder_tests.cpp \
+		handler_tests.cpp
 
 # All of the sources I want compiled
 SRC = decoder.c \
@@ -33,7 +33,8 @@ SRC = decoder.c \
 	  handlers.c \
 	  debugterm.c \
 	  devices.c \
-	  opcode_defs.c
+	  opcode_defs.c \
+	  peripherals.c
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -41,7 +42,11 @@ SRC = decoder.c \
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to C and C++ compiler
-FLAGS = -I$(USER_DIR) -IGtest/include -D DEBUG
+DEFINES = -D DEBUG \
+		  #-D NO_PERPHS \
+		  #-D NO_PORTS
+
+FLAGS = -I$(USER_DIR) -IGtest/include $(DEFINES)
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra $(FLAGS)
@@ -64,8 +69,11 @@ all : $(TARGET)
 # trailing _.
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
-OBJS = $(SRC:%.c=$(USER_DIR)/%.c.o) \
-	$(TESTS:.cpp=.cpp.o)
+USER_OBJS = $(SRC:%.c=$(USER_DIR)/%.c.o)
+TEST_OBJS = all_tests.cpp.o 
+#TEST_OBJS = $(TESTS:.cpp=.cpp.o)
+OBJS = $(USER_OBJS) $(TEST_OBJS)
+LOCAL_OBJS = $(notdir $(OBJS))
 
 
 # For simplicity and to avoid depending on Google Test's
@@ -100,6 +108,15 @@ gtest_main.a : gtest-all.o gtest_main.o
 #sample1_unittest : sample1.o sample1_unittest.o gtest_main.a
 #	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
 
+all_tests.cpp:
+	cat $(TESTS) >> $@
+
+$(USER_DIR)/%.c.o : $(USER_DIR)/%.c
+	$(CC) $(CCFLAGS) -c -o $(notdir $@) $<
+
+$(USER_DIR)/%.cpp.o : $(USER_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $(notdir $@) $<
+
 %.c.o : %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
@@ -107,13 +124,13 @@ gtest_main.a : gtest-all.o gtest_main.o
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(TARGET) : gtest_main.a $(OBJS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $(TARGET) 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $(notdir $^) -o $(TARGET) 
 
 
 #########
 
 clean :
-	rm -f $(TARGET) $(OBJS) 
+	rm -f $(TARGET) $(LOCAL_OBJS) all_tests.cpp
 
 clean-all : clean 
 	rm -f gtest.a gtest_main.a *.o

@@ -13,6 +13,7 @@ CoreDef default_core = {
 	.sreg_addr		= 0x5F,
 	.SP_addr		= 0x5D,
 	.EIND_addr		= 0,
+	.num_pins		= 88,
 	.port_a			= 0x20,
 	.port_b			= 0x23,
 	.port_c			= 0x26,

@@ -15,7 +15,10 @@ extern "C" {
 #include <stdbool.h>
 #include "devices.h"
 #include "decoder.h"
+
+#ifndef NO_PERPHS
 #include "peripherals.h"
+#endif // NO_PERPHS
 
 // MACROS
 #define GETBIT(var, index) ((var >> index) 0x01)
@@ -72,6 +75,7 @@ uint16_t *SP;	// Stack pointer
 uint8_t *SPH;	// Stack pointer high
 uint8_t *SPL;	// Stack pointer low
 
+#ifndef NO_PORTS
 // I/O Pins
 #define PORTA 0
 #define PORTB 1
@@ -90,34 +94,41 @@ typedef struct Port {
 	uint8_t *ddr;		// Address of DDRx
 	uint8_t *port;		// Address of PORTx
 	int8_t pin_map[8];	// The mapping of pins to indexes
-	bool claim;			// Set if a listener my write to this port
-	bool pin_claim;		// Set if any of the pins may be written
+#ifndef NO_PERPHS
+	Peripheral *listener;
+	bool pin_listener;	// There is a listener on at least one of the pins
+#endif
 } Port;
 
 Port *ports[11];
 
 typedef enum PinState {
-	Z,		// Undriven
-	X,		// Nonsense
 	H = 1,	// High
-	L = 0	// Low
+	L = 0,	// Low
+	Z = 2,	// Undriven
+	X = 3	// Nonsense
 } PinState;
 
 typedef struct Pin {
 	Port *port;			// A pointer to the port
 	uint8_t bit;		// The bit index in that port
-	PinState state;		// The current driven state of the pin
-	bool claim;			// Set if a listener my write to this pin
+	PinState state;		// The current input drive state of the pin
+#ifndef NO_PERPHS
+	Peripheral *listener;
+#endif
 } Pin;
 
 Pin **pins;
 
+#endif // NO_PORTS
+
 // Listeners
+#ifndef NO_PERPHS
 bool gl_flag; 					// Global listener flag
 Peripheral **mem_listeners;		// Array of memory listeners
-Peripheral **port_listeners;	// Array of port listeners
-Peripheral **pin_listeners;		// Array of pin listeners
-bool *mem_claim;	// Boolean array. Set true if a listener may write this address
+bool *mem_claim;				// Set true if a listener may write 
+								// this address
+#endif	// NO_PERPHS
 
 ////////////////////////
 // Device Properties
@@ -134,7 +145,10 @@ void teardownMemory(void);
 int runAVR(void);
 void writeMem(uint16_t addr, uint8_t data);
 uint8_t readMem(uint16_t addr);
+#ifndef NO_PORTS
 PinState readPin(uint8_t pin_num);
+void writePin(uint8_t pin_num, PinState state);
+#endif	// NO_PORTS
 
 //////////////
 // Printing

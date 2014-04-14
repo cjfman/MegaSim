@@ -12,9 +12,15 @@
 #include "core.h"
 #include "handlers.h"
 #include "decoder.h"
+
+#ifndef NO_PERPHS
 #include "peripherals.h"
+#endif
 
 #undef DEBUG
+#define NO_PORTS
+
+//bool sreg[8];
 
 void setupMemory(void) {
 	// Initialize pointers
@@ -32,6 +38,7 @@ void setupMemory(void) {
 	SPH  = SPL + 1;
 	EIND = main_mem + coredef->EIND_addr;
 
+#ifndef NO_PORTS
 	// Ports and Pins
 	pins = (Pin**)malloc(coredef->num_pins*sizeof(Pin*));
 	memset(pins, 0, coredef->num_pins*sizeof(Pin*));
@@ -69,8 +76,10 @@ void setupMemory(void) {
 		port->pin  = main_mem + port_addrs[i];
 		port->ddr  = main_mem + port_addrs[i] + 1;
 		port->port = main_mem + port_addrs[i] + 2;
-		port->claim = false;
-		port->pin_claim = false;
+#ifndef NO_PERPHS
+		port->listener = NULL;
+		port->pin_listener = false;
+#endif	// NO_PERPHS
 		int j;
 		for (j = 0; j < 8; j++) {
 			// Initialize all mapped pins
@@ -80,26 +89,28 @@ void setupMemory(void) {
 			pin->port = port;
 			pin->bit = j;
 			pin->state = Z;
-			pin->claim = false;
+#ifndef NO_PERPHS
+			pin->listener = NULL;
+#endif	// NO_PERPHS
 			pins[port_maps[i][j] - 1] = pin;
 		}
 		ports[i] = port;
 	}
+#endif // NO_PORTS
 
 	// Listeners
+#ifndef NO_PERPHS
 	gl_flag = false;
 	mem_listeners = 
 		(Peripheral**)malloc(coredef->mem_size*sizeof(Peripheral*));
 	memset(mem_listeners, 0, coredef->mem_size*sizeof(Peripheral*));
-	port_listeners = (Peripheral**)malloc(11*sizeof(Peripheral*));
-	memset(port_listeners, 0, 11*sizeof(Peripheral*));
-	pin_listeners = (Peripheral**)malloc(coredef->num_pins*sizeof(Peripheral*));
-	memset(pin_listeners, 0, coredef->num_pins*sizeof(Peripheral*));
+#endif
 }
 
 void teardownMemory(void) {
 	free(main_mem);
 	main_mem = NULL;
+#ifndef NO_PORTS
 	int i;
 	for (i = 0; i < 11; i++) {
 		free(ports[i]);
@@ -113,12 +124,11 @@ void teardownMemory(void) {
 	}
 	free(pins);
 	pins = NULL;
+#endif // NO_PORTS
+#ifndef NO_PERPHS
 	free(mem_listeners);
 	mem_listeners = NULL;
-	free(port_listeners);
-	port_listeners = NULL;
-	free(pin_listeners);
-	pin_listeners = NULL;
+#endif
 }
 
 // Main Control Loop
@@ -156,7 +166,7 @@ void writeMem(uint16_t addr, uint8_t data) {
 	if (addr >= coredef->sram_start) {
 		main_mem[addr] = data;
 	}
-	else if (addr == coredef->sreg_addr) {
+	if (addr == coredef->sreg_addr) {
 		sreg[0] = data & 0x1;
 		sreg[1] = (data >> 1) & 0x1;
 		sreg[2] = (data >> 2) & 0x1;
@@ -173,12 +183,77 @@ void writeMem(uint16_t addr, uint8_t data) {
 		fprintf(stdout, "%c", data);
 	}
 	else {
+#ifndef NO_PORTS
+		// Check for ports
+		uint8_t* real_addr = main_mem + addr;
+		int i;
+		// Loop through each port
+		for (i = 0; i < 11; i++) {
+			Port *port = ports[i];
+			if (port == NULL) continue;			// Port does not exist
+			if (real_addr == port->pin) break;	// Read only
+			if (real_addr == port->port || real_addr == port->ddr) {
+				main_mem[addr] = data;					// Save data
+				uint8_t set = *port->port & *port->ddr;	// Set bits that pull high
+				uint8_t stay = *port->pin & ~*port->ddr;// Set floating bits that
+														// are currently high
+				*port->pin = set | stay;				// Set the new read values
+#ifndef NO_PERPHS
+				if (port->listener) {
+					portNotification(port->listener, i, *port->port);
+					break;	// Do not look at other ports
+							// Do not send pin notifications
+				}
+				// Do pin updates and notifications
+				if (!port->pin_listener) break;
+				int j;
+				for (j = 0; j < 8; j++) {
+					// Loop through each pin
+					if (port->pin_map[j] == -1) continue;	// Ignore unmapped bit
+					Pin *pin = pins[port->pin_map[j]];
+					// If the pin is in input mode and is floating, do nothing
+					if (pin->listener == NULL) continue;
+					// If the pin is in output mode, notify listener
+					if (*port->ddr & masks[j]) {
+						// Notify listener
+						uint8_t val= ((*port->port & masks[j]) >> j);
+						pinNotification(pin->listener, port->pin_map[j] + 1, val);
+						continue;
+					}
+					// Else, use the externally driven value
+					switch (pin->state) {
+					case H:
+						// Set bit
+						*port->pin |= masks[j];
+						break;
+					case L:
+						// Clear bit
+						*port->pin &= ~masks[j];
+						break;
+					default:
+						// Do nothing for floating
+						break;
+					}
+				}
+#endif //  NO_PERPHS
+				break;	// Do not look at other ports
+			}
+		}
+		if (i == 11) {
+			// None of the ports matched
+			main_mem[addr] = data;
+		}
+#else // NO_PORTS
 		main_mem[addr] = data;
+#endif 	// NO_PORTS
 	}
-	// Check for listeners
+
+#ifndef NO_PERPHS
+	// Check for memory listeners
 	if (mem_listeners[addr]) {
 		memoryNotification(mem_listeners[addr], addr, data);
 	}
+#endif // NO_PERPHS
 }
 
 uint8_t readMem(uint16_t addr) {
@@ -201,48 +276,43 @@ uint8_t readMem(uint16_t addr) {
 			| (sreg[6] << 6)
 			| (sreg[7] << 7);
 	}
-	// Check for ports
-	int i;
-	for (i = 0; i < 11; i++) {
-		Port *port = ports[i];
-		if (port == NULL || (main_mem + addr) != port->pin) continue;
-		if (port->pin_claim) {
-			// There is a peripheral that can write to a pin on this port
-			// Each pin must be checked for it's status
-			uint8_t res = 0;
-			int j;
-			for (j = 0; j < 8; j++) {
-				// Loop through each pin
-				// The value of unmapped bits will be 0
-				if (port->pin_map[j] == -1) continue;	// Bit is unmapped. Ignore.
-				PinState state = (pins[port->pin_map[j]]->state);
-				// If the pin is in output mode, use the internal driving value
-				// If the pin is in input mode and is floating, check for pullup
-				// If no pullup, value will be low
-				// Else, use the externally driven value
-				res |= (*port->ddr & masks[j]) ? *port->port & masks[j] :
-					   (state == Z)            ? *port->port & masks[j] :
-					                                         state << j ;
-			}
-			return res;
-		}
-		// No peripheral can write to this port
-		// Simply use PORTx
-		return *port->port;
-	}
 	return main_mem[addr];
 }
 
+#ifndef NO_PORTS
 PinState readPin(uint8_t pin_num) {
 	if (pin_num > coredef->num_pins) return X;		// This pin does not exist
 	Pin *pin = pins[pin_num - 1];
 	if (pin == NULL) return X;						// This pin is not mapped
 	Port *port = pin->port;
-	// Value if the state if output
-	PinState out = (*port->port & masks[pin->bit]) >> pin->bit;	
-	// Value if the state is input and undriven
-	PinState in = (out) ? H : Z;
-	return (*port->ddr & masks[pin->bit]) ? out        :
-		   (pin->claim)                   ? pin->state :
-		                                    in         ;
+	int mode = (*port->ddr & masks[pin->bit]);
+	if (mode) {
+		// Output mode
+		return (*port->port & masks[pin->bit]) ? H : L;
+	}
+	// Input mode
+	return (*port->pin & masks[pin->bit]) ? H : L;
 }
+
+void writePin(uint8_t pin_num, PinState state) {
+	if (pin_num > coredef->num_pins) return;
+	Pin *pin = pins[pin_num - 1];
+	if (pin == NULL) return;
+	pin->state = state;							// Update pin state
+	Port *port = pin->port;
+	int mode = (*port->ddr & masks[pin->bit]);
+	if (mode) return;							// Pin is in output mode
+	switch (state) {
+	case H:
+		*port->pin |= masks[pin->bit];			// Set pin 
+		break;
+	case L:
+		*port->pin &= ~masks[pin->bit];			// Clear pin
+		break;
+	case X:
+	case Z:
+		*port->pin |= *port->port & masks[pin->bit];	// Set if pullup
+		break;											// Otherwise leave unchagned
+	}
+}
+#endif 	// NO_PORTS

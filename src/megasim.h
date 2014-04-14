@@ -13,6 +13,7 @@ extern "C" {
 #include <stdio.h>
 #include <inttypes.h>
 #include "core.h"
+#include "peripherals.h"
 
 /////////////////
 // Signals
@@ -29,8 +30,10 @@ typedef struct Args {
 	char* path;				// The path to the file
 	uint16_t stderr_addr;	// The address mapped to stderr
 	uint16_t stdout_addr;	// The address mapped to stdout
+#ifndef NO_PERPHS
 	char** peripherals;		// A list of exacutable periferals
-	int p_count;		// The number of periferals
+	int p_count;			// The number of periferals
+#endif // NO_PERPHS
 } Args;
 
 Args args;	// Global arguments struct
@@ -40,7 +43,9 @@ void initArgs(Args* args);
 // Parses the arguments to the program
 int parseArgs(int argc, char* argv[], Args* args);
 // Parses the peripheral option
+#ifndef NO_PERPHS
 int parsePeripherals(char* p);
+#endif
 int parseInt(int* i, char* c);
 
 
