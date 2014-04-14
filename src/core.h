@@ -147,7 +147,7 @@ void writeMem(uint16_t addr, uint8_t data);
 uint8_t readMem(uint16_t addr);
 #ifndef NO_PORTS
 PinState readPin(uint8_t pin_num);
-void writePin(uint8_t pin_num, PinState state);
+bool writePin(uint8_t pin_num, PinState state);
 #endif	// NO_PORTS
 
 //////////////

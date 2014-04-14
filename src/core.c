@@ -18,7 +18,6 @@
 #endif
 
 #undef DEBUG
-#define NO_PORTS
 
 //bool sreg[8];
 
@@ -149,6 +148,11 @@ int runAVR(void) {
 			printf("%d:%d", program->size, pc);
 			return PC_ERROR;
 		}
+#ifndef NO_PERPHS
+		if (perph_write_flag) {
+			checkPeripherals();
+		}
+#endif	// NO_PERPHS
 	}
 	return 0;
 }
@@ -294,14 +298,17 @@ PinState readPin(uint8_t pin_num) {
 	return (*port->pin & masks[pin->bit]) ? H : L;
 }
 
-void writePin(uint8_t pin_num, PinState state) {
-	if (pin_num > coredef->num_pins) return;
-	Pin *pin = pins[pin_num - 1];
-	if (pin == NULL) return;
+bool writePin(uint8_t pin_num, PinState state) {
+	if (pin_num > coredef->num_pins) 
+		return false;
+	Pin *pin = pins[pin_num];
+	if (pin == NULL) 
+		return false;
 	pin->state = state;							// Update pin state
 	Port *port = pin->port;
 	int mode = (*port->ddr & masks[pin->bit]);
-	if (mode) return;							// Pin is in output mode
+	if (mode) 
+		return true;							// Pin is in output mode
 	switch (state) {
 	case H:
 		*port->pin |= masks[pin->bit];			// Set pin 
@@ -314,5 +321,6 @@ void writePin(uint8_t pin_num, PinState state) {
 		*port->pin |= *port->port & masks[pin->bit];	// Set if pullup
 		break;											// Otherwise leave unchagned
 	}
+	return true;
 }
 #endif 	// NO_PORTS
