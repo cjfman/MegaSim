@@ -153,7 +153,7 @@
 #define FMULSU	108
 // Transfer
 #define MOVW	109
-//#define LPM	110
+#define LPMen	110
 #define SPM	111
 // Enhanced Core 128k
 // Bitwise

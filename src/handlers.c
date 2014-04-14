@@ -11,7 +11,7 @@
 #include "opcode_defs.h"
 
 #warning SLEEP/WDR not implemeted
-#warning LPM/ELPM,SPM not implemented
+#warning ELPM,SPM not implemented
 
 #define UNUSED(p) ((p)=(p))
 
@@ -126,7 +126,7 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 	FMULS_run,	// 107
 	FMULSU_run,	// 108
 	MOVW_run,	// 109
-	unhandled_run,	// 110
+	LPM_run,	// 110
 	SPM_run,	// 111
 	BREAK_run,	// 112
 	EIJMP_run,	// 113

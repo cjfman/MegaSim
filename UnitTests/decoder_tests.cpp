@@ -1459,7 +1459,7 @@ TEST_F(DecoderDataOps, LPM2_num_zero) {
 	rd = 0;
 	mode = 2;
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+	EXPECT_INST_ONE_MODE(inst, LPMen, rd, mode);
 }
 
 TEST_F(DecoderDataOps, LPM2_num_1) {
@@ -1468,7 +1468,7 @@ TEST_F(DecoderDataOps, LPM2_num_1) {
 	mode = 2;
 	code |= encode_rd(rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+	EXPECT_INST_ONE_MODE(inst, LPMen, rd, mode);
 }
 
 TEST_F(DecoderDataOps, LPM2_num_2) {
@@ -1477,7 +1477,7 @@ TEST_F(DecoderDataOps, LPM2_num_2) {
 	mode = 2;
 	code |= encode_rd(rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+	EXPECT_INST_ONE_MODE(inst, LPMen, rd, mode);
 }
 
 TEST_F(DecoderDataOps, LPM3_num_1) {
@@ -1486,7 +1486,7 @@ TEST_F(DecoderDataOps, LPM3_num_1) {
 	mode = 3;
 	code |= encode_rd(rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+	EXPECT_INST_ONE_MODE(inst, LPMen, rd, mode);
 }
 
 TEST_F(DecoderDataOps, LPM3_num_2) {
@@ -1495,7 +1495,7 @@ TEST_F(DecoderDataOps, LPM3_num_2) {
 	mode = 3;
 	code |= encode_rd(rd);
 	decodeInstruction(&inst, &code);
-	EXPECT_INST_ONE_MODE(inst, LPM, rd, mode);
+	EXPECT_INST_ONE_MODE(inst, LPMen, rd, mode);
 }
 
 uint16_t ELPM_code = 0x95D8;

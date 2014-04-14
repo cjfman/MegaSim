@@ -314,11 +314,11 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 			else {
 				switch(opcode & 0x3) {
 					case 0: // LPM (ii)
-						inst->op = LPM;
+						inst->op = LPMen;
 						inst->mode = 2;
 						break;
 					case 1: // LPM (iii)
-						inst->op = LPM;
+						inst->op = LPMen;
 						inst->mode = 3;
 						break;
 					case 2: // ELPM (ii)
