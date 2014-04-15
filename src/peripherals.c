@@ -77,9 +77,9 @@ void startPeripherals(void);
 fd_set rfds;				// List of file descriptors to check for commands
 struct timeval wait_time;	// The maximum wait time to check for commands
 int max_fd;					// The maximum value of file descriptor
-void scanPeripherals(void);	// Checks each peripherals individually
-void findBrokenPipe(void);	// Looks for a broken pipe and removes it
-bool readCommand(Peripheral *perph);	// Checks a peripheral's pipe for data
+//void scanPeripherals(void);	// Checks each peripherals individually
+//void findBrokenPipe(void);	// Looks for a broken pipe and removes it
+void readCommand(Peripheral *perph);	// Checks a peripheral's pipe for data
 										// Returns false if the pipe is broken
 										// true otherwise
 
@@ -266,6 +266,7 @@ void pinNotification(Peripheral* perph, uint16_t pin, uint8_t data) {
 
 // Peripheral Write Checking /////////////////////////////////////////
 
+/*
 void checkPeripherals(void) {
 	wait_time.tv_sec = 0;	// Do not wait
     wait_time.tv_usec = 0;	// non-blocking call
@@ -286,18 +287,19 @@ void checkPeripherals(void) {
 		scanPeripherals();
 	}
 }
+// */
 
-void scanPeripherals(void) {
-	// Check each peripheral for a command
+void checkPeripherals(void) {
+	// Check each peripheral for commands
 	int i;
 	for (i = 0; i < num_perphs; i++) {
 		Peripheral *perph = peripherals[i];
 		if (!perph->live || !perph->can_write) continue;	// Don't check
-		bool res = readCommand(perph);
-		if (!res) continue;
+		readCommand(perph);
 	}
 }
 
+/*
 void findBrokenPipe(void) {
 	FD_ZERO(&rfds);		// Clear the list of pipes to check
 	max_fd = 0;			// reset max fd
@@ -312,8 +314,20 @@ void findBrokenPipe(void) {
 		max_fd = fmax(max_fd, perph->rdfd);		// recalculate max fd
 	}
 }
+// */
 
-bool readCommand(Peripheral *perph) {
+void readCommand(Peripheral *perph) {
+	char cmd = '\0';			// The command received
+	while (cmd != LMP_READY && perph->live) {
+		sendChar(perph, LMP_START);	// Attempt to start peripheral
+		cmd = readChar(perph);	
+		if (cmd == '\0') {
+			perph->live = false;
+			break;
+		}
+		handleCommand(perph, cmd);
+	}
+	/*
 	wait_time.tv_sec = 0;			// Do not wait
 	wait_time.tv_usec = 0;			// Non-blocking
 	fd_set test_set;				// Create fd set with one entry
@@ -332,6 +346,7 @@ bool readCommand(Peripheral *perph) {
 		handleCommand(perph, readChar(perph));
 	}
 	return true;
+	// */
 }
 
 // Message Passing //////////////////////////////////////////////////////
@@ -381,7 +396,9 @@ void sendMessage(Peripheral *p, char* msg, int len) {
 
 void handleCommand(Peripheral *p, char c) {
 #ifdef DEBUG_PERPH
-	fprintf(stderr, "%s sent command 0x%X\n", p->name, c);
+	if (c != LMP_READY) {
+		fprintf(stderr, "%s sent command 0x%X\n", p->name, c);
+	}
 #endif // DEBUG_PERPH
 	switch (c) {
 	case LMP_READY:
@@ -490,7 +507,7 @@ bool setpnHandler(Peripheral *perph) {
 	}
 	uint8_t pin_id = (uint8_t) message[0];	// Format number
 	Pin *pin;
-	if (pin_id > coredef->num_pins || (pin = pins[pin_id]) == NULL) {
+	if (pin_id > coredef->num_pins || (pin = pins[pin_id - 1]) == NULL) {
 		// Pin does not exist
 		sendChar(perph, LMP_RANGE);
 		return false;
@@ -501,6 +518,11 @@ bool setpnHandler(Peripheral *perph) {
 		sendChar(perph, LMP_TAKEN);
 		return false;
 	}
+//*
+#ifdef DEBUG_PERPH
+	fprintf(stderr, "%s set listener for pin %d\n", perph->name, pin_id);
+#endif
+// */
 	pin->listener = perph;
 	port->pin_listener = true;
 	sendChar(perph, LMP_ACK);
@@ -580,24 +602,25 @@ bool writepHandler(Peripheral *perph) {
 		// Loop through each pin
 		writePin(port->pin_map[i], (message[1] >> i) & 0x01);
 	}
+	sendChar(perph, LMP_ACK);
+	portNotification(perph, port_id, *port->pin);
 	return true;
 }
 
 bool writepnHandler(Peripheral *perph) {	
-	int count = readChars(perph, 22);	
+	int count = readChars(perph, 2);	
 	if (count != 2) {
 		sendChar(perph, LMP_FORMAT);	// Invalid
 		return false;					// Requires pin number and value
 	}
 	int pin_id = message[0];
 	Pin *pin;
-	if (pin_id > coredef->num_pins || (pin = pins[pin_id]) == NULL) {
+	if (pin_id > coredef->num_pins || (pin = pins[pin_id - 1]) == NULL) {
 		sendChar(perph, LMP_RANGE);		// Pin does not exist
 		return false;
 	}
 	Port *port = pin->port;
-	if (pin->listener != perph 
-		|| (port->listener != NULL && port->listener != perph)) {
+	if (pin->listener != perph && port->listener != perph) {
 		// Pin or port is taken
 		sendChar(perph, LMP_TAKEN);
 		return false;

@@ -205,11 +205,6 @@ void writeMem(uint16_t addr, uint8_t data) {
 														// are currently high
 				*port->pin = set | stay;				// Set the new read values
 #ifndef NO_PERPHS
-				if (port->listener) {
-					portNotification(port->listener, i, *port->port);
-					break;	// Do not look at other ports
-							// Do not send pin notifications
-				}
 				// Do pin updates and notifications
 				if (!port->pin_listener) break;
 				int j;
@@ -242,6 +237,11 @@ void writeMem(uint16_t addr, uint8_t data) {
 						pinNotification(pin->listener, port->pin_map[j] + 1, set);
 						break;
 					}
+				}
+				if (port->listener) {
+					portNotification(port->listener, i, *port->port);
+					break;	// Do not look at other ports
+							// Do not send pin notifications
 				}
 #endif //  NO_PERPHS
 				break;	// Do not look at other ports
@@ -325,10 +325,15 @@ bool writePin(uint8_t pin_num, PinState state) {
 			break;											// Otherwise leave unchagned
 		}
 	}
+	/*
 	// Notify listener
-	int bit = pin->bit;
-	uint8_t val = ((*port->port & masks[bit]) >> bit);
-	pinNotification(pin->listener, port->pin_map[bit] + 1, val);
+	Peripheral *perph;
+	if (pin->listener != NULL) {
+		int bit = pin->bit;
+		uint8_t val = ((*port->port & masks[bit]) >> bit);
+		pinNotification(pin->listener, port->pin_map[bit] + 1, val);
+	}
+	// */
 	return true;
 }
 #endif 	// NO_PORTS
