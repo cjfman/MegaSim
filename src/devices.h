@@ -23,6 +23,7 @@ typedef struct CoreDef {
 	uint16_t sreg_addr;			// Address of the status register
 	uint16_t SP_addr;			// The address of the SP in IO space
 	uint16_t EIND_addr;
+	uint16_t RAMPZ_addr;
 	uint8_t num_pins;			// The number of pins
 	uint16_t port_a;			// The base address of the port
 	uint16_t port_b;			// Every port has three addresses

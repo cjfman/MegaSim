@@ -35,6 +35,7 @@ typedef struct Instuction {
 	uint8_t cycles;	// The number of cycles the instruction takes
 } Instruction;
 
+void printDisAsm(void);
 void printInstruction(Instruction *inst);
 
 // Make a new blank instruction

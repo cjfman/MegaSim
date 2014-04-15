@@ -15,9 +15,8 @@ int runDebugTerm(void) {
 	fprintf(stderr, "\nStarting Debug Terminal\n");
 	debug_mode = 1;
 	// Print next instruction
-	pc++;
 	Instruction inst = program->instructions[pc];
-	fprintf(stderr, "pc @ 0x%x\t", pc);
+	fprintf(stderr, "pc @ 0x%X\t", pc);
 	printInstruction(&inst);
 	fprintf(stderr, "\n");
 	// Get commands
@@ -34,22 +33,27 @@ int runDebugTerm(void) {
 			if (error) return error;
 			continue;
 		}
+		else if (strcmp(c, "disasm") == 0) {
+			printDisAsm();
+			continue;
+		}
 		else if (strcmp(c, "quit") == 0) {
 			return EXIT_ERROR;
 		}
 		scanf("%d", &i);
 		if (strcmp(c, "pr") == 0) {
 			i &= 0x1F;
-			fprintf(stderr, "R[%d]: %d", i, regs[i]);
+			fprintf(stderr, "R[%d]: %d, 0x%X", i, regs[i], regs[i]);
 			if(isprint(regs[i]))
 				fprintf(stderr, " '%c'", regs[i]);
 
 			fprintf(stderr, "\n");
 		}
 		else if (strcmp(c, "p") == 0) {
-			fprintf(stderr, "MEM[%d]: %d", i, main_mem[i]);
-			if(isprint(regs[i]))
-				fprintf(stderr, " '%c'", main_mem[i]);
+			uint8_t val = readMem(i);
+			fprintf(stderr, "MEM[%d]: %d, 0x%X", i, val, val);
+			if(isprint(val))
+				fprintf(stderr, " '%c'", val);
 
 			fprintf(stderr, "\n");
 		}
@@ -70,7 +74,7 @@ int step(void) {
 	if (pc >= program->size) {
 		return PC_ERROR;
 	} 
-	fprintf(stderr, "pc @ 0x%x\t", pc);
+	fprintf(stderr, "pc @ 0x%X\t", pc);
 	printInstruction(&program->instructions[pc]);
 	fprintf(stderr, "\n");
 	return 0;

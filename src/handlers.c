@@ -11,7 +11,7 @@
 #include "opcode_defs.h"
 
 #warning SLEEP/WDR not implemeted
-#warning ELPM,SPM not implemented
+#warning SPM not implemented
 
 #define UNUSED(p) ((p)=(p))
 
@@ -1057,8 +1057,22 @@ int LPM_run(Instruction *inst) {
 }
 
 int ELPM_run(Instruction *inst) {
-	error_val = inst->op;
-	return UNHANDLED_ERROR;
+	uint32_t ea = *RZ | (*RAMPZ << 16);
+	if (ea >= 2*program->size) {
+		return PROG_MEM_ERROR;
+	}
+	switch(inst->mode) {
+	case 1:
+		regs[0] = ((uint8_t*)program->data)[ea];
+		break;
+	case 3:
+		(*RZ)++;
+	case 2:
+		regs[inst->D] = ((uint8_t*)program->data)[ea];
+		break;
+	}
+	pc += inst->wsize;
+	return 0;
 }
 
 int SPM_run(Instruction *inst) {
@@ -1097,13 +1111,13 @@ int STS_run(Instruction *inst) {
 }
 
 int IN_run(Instruction *inst) {
-	regs[inst->D] = io_mem[inst->A];
+	regs[inst->D] = readMem(inst->A);
 	pc += inst->wsize;
 	return 0;
 }
 
 int OUT_run(Instruction *inst) {
-	io_mem[inst->A] = regs[inst->D];
+	writeMem(inst->A, regs[inst->D]);
 	pc += inst->wsize;
 	return 0;
 }
@@ -1298,9 +1312,8 @@ int CLx_run(Instruction *inst) {
 ////// MCU Control Instructions //////////////
 
 int BREAK_run(Instruction *inst) {
-	UNUSED(inst);
+	pc += inst->wsize;
 	if (debug_mode) {
-		pc += inst->wsize;
 		return 0;	// Do not recurse
 	}
 	return runDebugTerm();

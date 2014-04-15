@@ -38,10 +38,19 @@ void decodeAllInstructions(void) {
 	for (i = 0; i < program->size; i++) {
 		decodeInstruction(&program->instructions[i], &program->data[i]);
 #ifdef DEBUG
-		fprintf(stderr, "0x%x\t0x%x\t", i, program->data[i]);
+		fprintf(stderr, "0x%X\t0x%X\t", i, program->data[i]);
 		printInstruction(&program->instructions[i]);
 		fprintf(stderr, "\n");
 #endif
+	}
+}
+
+void printDisAsm(void) {
+	int i;
+	for (i = 0; i < program->size; i++) {
+		fprintf(stderr, "0x%X\t0x%X\t", i, program->data[i]);
+		printInstruction(&program->instructions[i]);
+		fprintf(stderr, "\n");
 	}
 }
 
@@ -54,7 +63,7 @@ void printInstruction(Instruction *inst) {
 		fprintf(stderr, " R%d ", inst->D);
 	case JMP:
 	case CALL:
-		fprintf(stderr, ": AL=0x%x", inst->AL);
+		fprintf(stderr, ": AL=0x%X", inst->AL);
 		break;
 	// RD with K
 	case LDI:
@@ -64,15 +73,21 @@ void printInstruction(Instruction *inst) {
 	case BRx:
 		fprintf(stderr, ": K=%d", inst->K);
 		break;
+	// RD to A
+	case OUT:
+		fprintf(stderr, " 0x%X, R%d", inst->A, inst->D);
+		break;
+	// A to RD
+	case IN:
+		fprintf(stderr, " R%d, 0x%X", inst->D, inst->A);
+		break;
 	// ireg and RD
 	case STD:
-		//*
 		c = (inst->ireg == RW) ? "RW" :
 				  (inst->ireg == RX) ? "RX" :
 				  (inst->ireg == RY) ? "RY" :
 				  (inst->ireg == RZ) ? "RZ" :
 				                       "R?" ;
-		// */
 		fprintf(stderr, " %s+%d, R%d", c, inst->K, inst->D);
 		break;
 	// RD
@@ -86,7 +101,7 @@ void printInstruction(Instruction *inst) {
 		fprintf(stderr, " R%d, R%d", inst->D, inst->R);
 		break;
 	case ILLOP:
-		fprintf(stderr,": 0x%x '", *inst->ireg);
+		fprintf(stderr,": 0x%X '", *inst->ireg);
 		unsigned char *c = (unsigned char*)inst->ireg;
 		if (isprint(c[1]))
 			fprintf(stderr, "%c", c[1]);

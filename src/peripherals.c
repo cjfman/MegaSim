@@ -2,6 +2,12 @@
 
 #ifndef NO_PERPHS
 
+#ifndef DEBUG_PERPH
+#ifdef DEBUG
+#define DEBUG_PERPH
+#endif // DEBUG
+#endif // DEBUG_PERPH
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -307,9 +313,6 @@ void findBrokenPipe(void) {
 	}
 }
 
-
-// Message Passing //////////////////////////////////////////////////////
-
 bool readCommand(Peripheral *perph) {
 	wait_time.tv_sec = 0;			// Do not wait
 	wait_time.tv_usec = 0;			// Non-blocking
@@ -330,6 +333,8 @@ bool readCommand(Peripheral *perph) {
 	}
 	return true;
 }
+
+// Message Passing //////////////////////////////////////////////////////
 
 char readChar(Peripheral *p) {
 	char c = '\0';
@@ -375,6 +380,9 @@ void sendMessage(Peripheral *p, char* msg, int len) {
 }
 
 void handleCommand(Peripheral *p, char c) {
+#ifdef DEBUG_PERPH
+	fprintf(stderr, "%s sent command 0x%X\n", p->name, c);
+#endif // DEBUG_PERPH
 	switch (c) {
 	case LMP_READY:
 		sendChar(p, LMP_ACK);
@@ -401,6 +409,14 @@ void handleCommand(Peripheral *p, char c) {
 		writepnHandler(p);
 		break;
 	case LMP_CLAIM:
+		claimHandler(p);
+		break;
+	case LMP_CLAIMP:
+		claimpHandler(p);
+		break;
+	case LMP_CLAIMPN:
+		claimpnHandler(p);
+		break;
 	case LMP_SYNC:
 	case LMP_UNSYNC:
 	case LMP_CLK:
@@ -409,6 +425,9 @@ void handleCommand(Peripheral *p, char c) {
 	case LMP_DATAPN:
 	default:			// Bad Command
 		sendChar(p, LMP_BAD);
+#ifdef DEBUG_PERPH
+		fprintf(stderr, "%s sent bad command 0x%X\n", p->name, c);
+#endif // DEBUG_PERPH
 		break;
 	}
 }

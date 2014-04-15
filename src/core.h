@@ -71,6 +71,7 @@ uint16_t *RX;	// R27:R26
 uint16_t *RY;	// R29:R28
 uint16_t *RZ;	// R31:R30
 uint8_t *EIND;
+uint8_t *RAMPZ;
 uint16_t *SP;	// Stack pointer
 uint8_t *SPH;	// Stack pointer high
 uint8_t *SPL;	// Stack pointer low

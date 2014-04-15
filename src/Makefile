@@ -12,7 +12,8 @@ SOURCES = megasim.c \
 		  peripherals.c
 
 ## FLAGS
-DEFINES = #-D NO_PERPHS
+DEFINES = -D DEBUG_PERPH
+		 #-D NO_PERPHS
 	     #-D DEBUG
 
 FLAGS = -g -O0 $(DEFINES)

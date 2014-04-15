@@ -109,7 +109,7 @@ char *opcode_strings[128] = {
 	"FMULS",	// 107
 	"FMULSU",	// 108
 	"MOVW",	// 109
-	"NO_CODE",	// 110
+	"LPM",	// 110
 	"SPM",	// 111
 	"BREAK",	// 112
 	"EIJMP",	// 113

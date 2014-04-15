@@ -35,7 +35,8 @@ void setupMemory(void) {
 	SP   = (uint16_t*)(main_mem + coredef->SP_addr);
 	SPL  = (uint8_t*) SP;
 	SPH  = SPL + 1;
-	EIND = main_mem + coredef->EIND_addr;
+	EIND =  main_mem + coredef->EIND_addr;
+	RAMPZ = main_mem + coredef->RAMPZ_addr;
 
 #ifndef NO_PORTS
 	// Ports and Pins
@@ -198,7 +199,8 @@ void writeMem(uint16_t addr, uint8_t data) {
 			if (real_addr == port->pin) break;	// Read only
 			if (real_addr == port->port || real_addr == port->ddr) {
 				main_mem[addr] = data;					// Save data
-				uint8_t set = *port->port & *port->ddr;	// Set bits that pull high
+				uint8_t set = *port->port;				// Set bits that pull high
+														// or drive high
 				uint8_t stay = *port->pin & ~*port->ddr;// Set floating bits that
 														// are currently high
 				*port->pin = set | stay;				// Set the new read values
@@ -220,7 +222,7 @@ void writeMem(uint16_t addr, uint8_t data) {
 					// If the pin is in output mode, notify listener
 					if (*port->ddr & masks[j]) {
 						// Notify listener
-						uint8_t val= ((*port->port & masks[j]) >> j);
+						uint8_t val = ((*port->port & masks[j]) >> j);
 						pinNotification(pin->listener, port->pin_map[j] + 1, val);
 						continue;
 					}
@@ -235,7 +237,9 @@ void writeMem(uint16_t addr, uint8_t data) {
 						*port->pin &= ~masks[j];
 						break;
 					default:
-						// Do nothing for floating
+						// Notify listener
+						set = ((*port->port & masks[j]) >> j);
+						pinNotification(pin->listener, port->pin_map[j] + 1, set);
 						break;
 					}
 				}
@@ -307,20 +311,24 @@ bool writePin(uint8_t pin_num, PinState state) {
 	pin->state = state;							// Update pin state
 	Port *port = pin->port;
 	int mode = (*port->ddr & masks[pin->bit]);
-	if (mode) 
-		return true;							// Pin is in output mode
-	switch (state) {
-	case H:
-		*port->pin |= masks[pin->bit];			// Set pin 
-		break;
-	case L:
-		*port->pin &= ~masks[pin->bit];			// Clear pin
-		break;
-	case X:
-	case Z:
-		*port->pin |= *port->port & masks[pin->bit];	// Set if pullup
-		break;											// Otherwise leave unchagned
+	if (!mode) {
+		switch (state) {
+		case H:
+			*port->pin |= masks[pin->bit];			// Set pin 
+			break;
+		case L:
+			*port->pin &= ~masks[pin->bit];			// Clear pin
+			break;
+		case X:
+		case Z:
+			*port->pin |= *port->port & masks[pin->bit];	// Set if pullup
+			break;											// Otherwise leave unchagned
+		}
 	}
+	// Notify listener
+	int bit = pin->bit;
+	uint8_t val = ((*port->port & masks[bit]) >> bit);
+	pinNotification(pin->listener, port->pin_map[bit] + 1, val);
 	return true;
 }
 #endif 	// NO_PORTS
