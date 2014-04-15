@@ -206,9 +206,9 @@ void writeMem(uint16_t addr, uint8_t data) {
 				*port->pin = set | stay;				// Set the new read values
 #ifndef NO_PERPHS
 				// Do pin updates and notifications
-				if (!port->pin_listener) break;
 				int j;
 				for (j = 0; j < 8; j++) {
+					if (!port->pin_listener) break;
 					// Loop through each pin
 					if (port->pin_map[j] == -1) continue;	// Ignore unmapped bit
 					Pin *pin = pins[port->pin_map[j]];

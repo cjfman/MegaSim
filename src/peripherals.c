@@ -384,7 +384,7 @@ void sendMessage(Peripheral *p, char* msg, int len) {
 		p->live = false;
 		switch(errno) {
 		case EPIPE:
-			fprintf(stderr, "Received EPIPE."); 
+			fprintf(stderr, "Broken Pipe."); 
 			break;
 		default:
 			fprintf(stderr, "Received error %d", count);
@@ -396,9 +396,9 @@ void sendMessage(Peripheral *p, char* msg, int len) {
 
 void handleCommand(Peripheral *p, char c) {
 #ifdef DEBUG_PERPH
-	if (c != LMP_READY) {
+	//if (c != LMP_READY) {
 		fprintf(stderr, "%s sent command 0x%X\n", p->name, c);
-	}
+//	}
 #endif // DEBUG_PERPH
 	switch (c) {
 	case LMP_READY:
