@@ -208,18 +208,18 @@ void writeMem(uint16_t addr, uint8_t data) {
 				// Do pin updates and notifications
 				int j;
 				for (j = 0; j < 8; j++) {
-					if (!port->pin_listener) break;
+					if (!port->pin_listener && port->listener == NULL) {
+						break;
+					}
 					// Loop through each pin
-					if (port->pin_map[j] == -1) continue;	// Ignore unmapped bit
+					if (port->pin_map[j] == -1) {
+						continue;					// Ignore unmapped bit
+					}
 					Pin *pin = pins[port->pin_map[j]];
-					// If the pin is in input mode and is floating, do nothing
-					if (pin->listener == NULL) continue;
+					bool notify = false;			// Should notify pin listener
 					// If the pin is in output mode, notify listener
 					if (*port->ddr & masks[j]) {
-						// Notify listener
-						uint8_t val = ((*port->port & masks[j]) >> j);
-						pinNotification(pin->listener, port->pin_map[j] + 1, val);
-						continue;
+						notify = true;
 					}
 					// Else, use the externally driven value
 					switch (pin->state) {
@@ -232,10 +232,13 @@ void writeMem(uint16_t addr, uint8_t data) {
 						*port->pin &= ~masks[j];
 						break;
 					default:
-						// Notify listener
-						set = ((*port->port & masks[j]) >> j);
-						pinNotification(pin->listener, port->pin_map[j] + 1, set);
+						notify = true;
 						break;
+					}
+					// Notify listener
+					if (pin->listener != NULL && notify) {
+						uint8_t val = ((*port->port & masks[j]) >> j);
+						pinNotification(pin->listener, port->pin_map[j] + 1, val);
 					}
 				}
 				if (port->listener) {
