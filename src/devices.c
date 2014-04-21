@@ -3,8 +3,23 @@
 #include "devices.h"
 #include "opcode_defs.h"
 
-CoreDef default_core = {
+uint32_t port_masks[11] = {
+                           PORT_A,
+						   PORT_B,
+						   PORT_C,
+						   PORT_D,
+						   PORT_E,
+						   PORT_F,
+						   PORT_G,
+						   PORT_H,
+						   PORT_J,
+						   PORT_K,
+						   PORT_L
+						  };
+
+const CoreDef default_core = {
 	.type 			= CORE_L_XMEGA,
+	.default_addrs 	= true,
 	.mem_size 		= 65536,
 	.prog_mem_size 	= 128*1024/2,
 	.sram_start		= 0x0100,
@@ -15,6 +30,7 @@ CoreDef default_core = {
 	.EIND_addr		= 0x5C,
 	.RAMPZ_addr		= 0x5B,
 	.num_pins		= 88,
+	.ports			= ALL_PORTS,
 	.port_a			= 0x20,
 	.port_b			= 0x23,
 	.port_c			= 0x26,
@@ -38,3 +54,21 @@ CoreDef default_core = {
 	.port_k_map		= {72,	73,	74,	75,	76,	77,	78,	79},
 	.port_l_map		= {80,	81,	82,	83,	84,	85,	86,	87}
 };
+
+
+void setDefaultAddresses(CoreDef *core) {
+	core->SP_addr 		= default_core.SP_addr;
+	core->EIND_addr		= default_core.EIND_addr;
+	core->RAMPZ_addr	= default_core.RAMPZ_addr;
+	core->port_a		= default_core.port_a;
+	core->port_b		= default_core.port_b;
+	core->port_c		= default_core.port_c;
+	core->port_d		= default_core.port_d;
+	core->port_e		= default_core.port_e;
+	core->port_f		= default_core.port_f;
+	core->port_g		= default_core.port_g;
+	core->port_h		= default_core.port_h;
+	core->port_j		= default_core.port_j;
+	core->port_k		= default_core.port_k;
+	core->port_l		= default_core.port_l;
+}

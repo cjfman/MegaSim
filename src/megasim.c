@@ -32,7 +32,14 @@ int main(int argc, char* argv[]) {
 	if (error) return 1;
 	stderr_addr = args.stderr_addr;
 	stdout_addr = args.stdout_addr;
-	coredef = &default_core;
+
+	// Setup core
+	coredef = (CoreDef*)malloc(sizeof(CoreDef));		// Allocate core
+	memcpy(coredef, &default_core, sizeof(CoreDef));	// Load core
+	if (coredef->default_addrs) {
+		setDefaultAddresses(coredef);
+	}
+	setupMemory();
 
 	// Load Program
 	program = loadData(&args);
@@ -40,9 +47,6 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	fprintf(stderr, "Program loaded. %d bytes\n", program->size*2);
-
-	// Setup core
-	setupMemory();
 	decodeAllInstructions();
 	fprintf(stderr, "All instructions decoded\n");
 

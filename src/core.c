@@ -67,7 +67,7 @@ void setupMemory(void) {
 	int i;
 	for (i = 0; i < 11; i++) {
 		// Check to see if port exists
-		if (port_addrs[0] == 0) {
+		if (!(coredef->ports & port_masks[i])) {
 			ports[i] = NULL;
 			continue;
 		}
@@ -149,6 +149,7 @@ int runAVR(void) {
 			printf("%d:%d", program->size, pc);
 			return PC_ERROR;
 		}
+		cycle_count += inst.cycles;
 #ifndef NO_PERPHS
 		if (perph_write_flag) {
 			checkPeripherals();

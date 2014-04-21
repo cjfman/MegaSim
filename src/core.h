@@ -45,6 +45,7 @@ bool sreg[8];
 
 // Program Counter
 uint32_t pc;
+uint64_t cycle_count;
 
 // Main Memory
 uint8_t *main_mem;

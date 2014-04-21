@@ -11,10 +11,28 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
+#include <stdbool.h>
+
+// Port Definitions
+#define PORT_A 1
+#define PORT_B (1 << 1)
+#define PORT_C (1 << 2)
+#define PORT_D (1 << 3)
+#define PORT_E (1 << 4)
+#define PORT_F (1 << 5)
+#define PORT_G (1 << 6)
+#define PORT_H (1 << 7)
+#define PORT_J (1 << 8)
+#define PORT_K (1 << 9)
+#define PORT_L (1 << 10)
+#define ALL_PORTS (PORT_A|PORT_B|PORT_C|PORT_E|PORT_F|PORT_G|PORT_H|PORT_J|PORT_K|PORT_L)
+
+extern uint32_t port_masks[11];
 
 // Core Definition
 typedef struct CoreDef {
 	uint8_t type;
+	bool default_addrs;			// Set true to use default memory addresses
 	unsigned int mem_size;		// Size in bytes
 	unsigned int prog_mem_size;	// Size in words
 	uint16_t sram_start;		// Address of the start of the SRAM
@@ -25,6 +43,7 @@ typedef struct CoreDef {
 	uint16_t EIND_addr;
 	uint16_t RAMPZ_addr;
 	uint8_t num_pins;			// The number of pins
+	uint32_t ports;				// The ports available
 	uint16_t port_a;			// The base address of the port
 	uint16_t port_b;			// Every port has three addresses
 	uint16_t port_c;			// This address designates PINx
@@ -49,7 +68,9 @@ typedef struct CoreDef {
 	uint8_t port_l_map[8];
 } CoreDef;
 
-extern CoreDef default_core;
+extern const CoreDef default_core;
+
+void setDefaultAddresses(CoreDef *core);
 
 #ifdef __cplusplus
 }

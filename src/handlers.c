@@ -181,6 +181,7 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 
 void reset_run(void) {
 	pc = 0;
+	cycle_count = 0;
 	*SP = coredef->sram_end;
 }
 
@@ -874,7 +875,12 @@ int RETI_run(Instruction *inst) {
 int SBRC_run(Instruction *inst) {
 	uint8_t set = (regs[inst->D] >> inst->R) & 0x01;
 	if (!set) {
-		pc += inst->wsize + (inst + 1)->wsize;
+		int words = (inst + 1)->wsize;
+		pc += words;
+		inst->cycles = 1 + words;
+	}
+	else {
+		inst->cycles = 1;
 	}
 	pc += inst->wsize;
 	return 0;
@@ -883,7 +889,12 @@ int SBRC_run(Instruction *inst) {
 int SBRS_run(Instruction *inst) {
 	uint8_t set = (regs[inst->D] >> inst->R) & 0x01;
 	if (set) {
-		pc += inst->wsize + (inst + 1)->wsize;
+		int words = (inst + 1)->wsize;
+		pc += words;
+		inst->cycles = 1 + words;
+	}
+	else {
+		inst->cycles = 1;
 	}
 	pc += inst->wsize;
 	return 0;
@@ -892,7 +903,12 @@ int SBRS_run(Instruction *inst) {
 int SBIC_run(Instruction *inst) {
 	uint8_t set = (io_mem[inst->A] >> inst->R) & 0x01;
 	if (!set) {
-		pc += inst->wsize + (inst + 1)->wsize;
+		int words = (inst + 1)->wsize;
+		pc += words;
+		inst->cycles = 1 + words;
+	}
+	else {
+		inst->cycles = 1;
 	}
 	pc += inst->wsize;
 	return 0;
@@ -901,7 +917,12 @@ int SBIC_run(Instruction *inst) {
 int SBIS_run(Instruction *inst) {
 	uint8_t set = (io_mem[inst->A] >> inst->R) & 0x01;
 	if (set) {
-		pc += inst->wsize + (inst + 1)->wsize;
+		int words = (inst + 1)->wsize;
+		pc += words;
+		inst->cycles = 1 + words;
+	}
+	else {
+		inst->cycles = 1;
 	}
 	pc += inst->wsize;
 	return 0;
@@ -971,7 +992,12 @@ int CPI_run(Instruction *inst) {
 
 int CPSE_run(Instruction *inst) {
 	if (regs[inst->D] == regs[inst->R]) {
-		pc += inst->wsize + (inst + 1)->wsize;
+		int words = (inst + 1)->wsize;
+		pc += words;
+		inst->cycles = 1 + words;
+	}
+	else {
+		inst->cycles = 1;
 	}
 	pc += inst->wsize;
 	return 0;
@@ -985,6 +1011,10 @@ int BRx_run(Instruction *inst) {
 		|| !(sreg[inst->R] || inst->D);
 	if (branch) {
 		pc += inst->K + inst->wsize;
+		inst->cycles = 2;
+	}
+	else {
+		inst->cycles = 1;
 	}
 	pc += inst->wsize;
 	return 0;

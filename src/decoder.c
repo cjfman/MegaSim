@@ -150,6 +150,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	}
 	// Signed and fractional multiply
 	else if ((opcode & 0xFE00) == 0x0200) {
+		inst->cycles = 2;
 		// MULS
 		if ((opcode & 0xFF00) == 0x0200) {
 			inst->op = MULS;
@@ -265,6 +266,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		swap = (opcode >> 9) & 0x01;
 		// LDD and STD
 		inst->op = (swap) ? STD : LDD;
+		inst->cycles = 2;
 	}
 	// LDS and STS
 	// Note that this is specificially the LDS
@@ -274,16 +276,19 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->op = (opcode & 0x0200) ? STS : LDS;
 		inst->AL = *(opcode_p + 1);
 		inst->wsize = 2;
+		inst->cycles = 2;
 	}
 	// PUSH and POP
 	else if ((opcode & 0xFC0F) == 0x900F) {
 		inst->op = (opcode & 0x0200) ? PUSH : POP;
+		inst->cycles = 2;
 	}
 	// LD and ST
 	// Also LAC/LAS/LAT/XCH for XMEGA
 	// This Opcode must come after LDS/STS and PUSH/POP
 	// To prevent matching their codes.
 	else if ((opcode & 0xFC00) == 0x9000) {
+		inst->cycles = 2;
 		swap = ((opcode) & 0x03); // Get mode
 		inst->mode = swap + 1;
 		if (opcode & 0x0200) {
@@ -327,6 +332,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 #endif // XMEGA_SUPPORTED
 			}
 			else {
+				inst->cycles = 3;
 				switch(opcode & 0x3) {
 					case 0: // LPM (ii)
 						inst->op = LPMen;
@@ -401,9 +407,11 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		switch(swap) {
 		case 0: // RET
 			inst->op = RET;
+			inst->cycles = (coredef->pc_size == 16) ? 4 : 5;
 			break;
 		case 1: // RETI
 			inst->op = RETI;
+			inst->cycles = (coredef->pc_size == 16) ? 4 : 5;
 			break;
 		case 8: // SLEEP
 			inst->op = SLEEP;
@@ -444,18 +452,22 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		inst->AL = inst->AL << 16;
 		inst->AL |= *(opcode_p + 1);	// Use next word
 		inst->wsize = 2;
+		inst->cycles = 3;
 	}
 	// EIJMP
 	else if (opcode == 0x9419) {
 		inst->op = EIJMP;
+		inst->cycles = 2;
 	}
 	// IJMP
 	else if (opcode == 0x9409) {
 		inst->op = IJMP;
+		inst->cycles = 2;
 	}
 	// RJMP
 	else if ((opcode & 0xF000) == 0xC000) {
 		inst->op = RJMP;
+		inst->cycles = 2;
 		inst->A = opcode & 0x0FFF;
 #if IS_ARITHMETIC_RS
 		inst->A = inst->A << 4;
@@ -470,6 +482,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	// CALL
 	else if ((opcode & 0xFE0E) == 0x940E) {
 		inst->op = CALL;
+		inst->cycles = (coredef->pc_size == 16) ? 4 : 5;
 		inst->AL = (opcode & 0x01) | ((opcode & 0x01F0) >> 3);
 		inst->AL = inst->AL << 16;
 		inst->AL |= *(opcode_p + 1);	// Use next word
@@ -478,14 +491,17 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	// EICALL
 	else if (opcode == 0x9519) {
 		inst->op = EICALL;
+		inst->cycles = 4;
 	}
 	// ICALL
 	else if (opcode == 0x9509) {
 		inst->op = ICALL;
+		inst->cycles = (coredef->pc_size == 16) ? 3 : 4;
 	}
 	// RCALL
 	else if ((opcode & 0xF000) == 0xD000) {
 		inst->op = RCALL;
+		inst->cycles = (coredef->pc_size == 16) ? 3 : 4;
 		inst->A = opcode & 0x0FFF;
 #if IS_ARITHMETIC_RS
 		inst->A = inst->A << 4;
@@ -512,6 +528,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	else if (top8 == 0x96) {
 		inst->op = ADIW;
 		inst->K = (opcode & 0xF) | ((opcode >> 2) & 0x30);
+		inst->cycles = 2;
 		swap = (opcode >> 4) & 0x3;
 		switch (swap) {
 		case 0: // RW
@@ -532,6 +549,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	else if (top8 == 0x97) {
 		inst->op = SBIW;
 		inst->K = (opcode & 0xF) | ((opcode >> 2) & 0x30);
+		inst->cycles = 2;
 		swap = (opcode >> 4) & 0x3;
 		switch (swap) {
 		case 0: // RW
@@ -557,12 +575,14 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 		switch(swap) {
 		case 0:	// CBI
 			inst->op = CBI;
+			inst->cycles = 2;
 			break;
 		case 1: // SBIC
 			inst->op = SBIC;
 			break;
 		case 2:	// SBI
 			inst->op = SBI;
+			inst->cycles = 2;
 			break;
 		case 3: //SBIS
 			inst->op = SBIS;
@@ -572,6 +592,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	// Unsigned MUL
 	else if ((opcode & 0xFC00) == 0x9C00) {
 		inst->op = MUL;
+		inst->cycles = 2;
 	}
 	// IN/OUT
 	else if ((opcode & 0xF000) == 0xB000) {
