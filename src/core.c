@@ -79,8 +79,8 @@ void setupMemory(void) {
 		}
 	*/
 	// Allocate memory for ports
-	for (i = 0; coredef->ports[i] != 0; i++);
-	num_ports = 0;
+	for (i = 0; coredef->ports[i] != 0; i++);	// Count ports
+	num_ports = i;
 	ports = (Port**)malloc(num_ports*sizeof(Port*));
 	
 	for (i = 0; i < num_ports; i++) {
