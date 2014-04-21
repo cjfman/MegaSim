@@ -1,6 +1,10 @@
 // timers.c
 
-#ifndef NO_HARDWARE
+#ifdef NO_HARDWARE
+#define NO_TIMERS
+#endif  // NO_HARDWARE
+
+#ifndef NO_TIMERS
 
 #include "timers.c"
 #include "core.c"
@@ -254,4 +258,4 @@ void runTimer8Bit(Timer8bit *timer) {
 	timer->TCNT_wr = false;
 }
 
-#endif 	// NO_HARDWARE
+#endif 	// NO_TIMERS

@@ -12,6 +12,9 @@
 #include "core.h"
 #include "devices.h"
 
+#ifdef DEBUG
+#define DEBUG_DECODER
+#endif	// DEBUG
 
 void decoderIllop(const char* m) {
 	printf("Decoder Error Illop: %s\n", m);
@@ -37,7 +40,7 @@ void decodeAllInstructions(void) {
 	//instruction *inst = program->instructions;
 	for (i = 0; i < program->size; i++) {
 		decodeInstruction(&program->instructions[i], &program->data[i]);
-#ifdef DEBUG
+#ifdef DEBUG_DECODER
 		fprintf(stderr, "0x%X\t0x%X\t", i, program->data[i]);
 		printInstruction(&program->instructions[i]);
 		fprintf(stderr, "\n");
@@ -117,8 +120,6 @@ void printInstruction(Instruction *inst) {
 	}
 }
 
-#undef DEBUG
-
 void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	// Dereferece opcode
 	uint16_t opcode = *opcode_p;
@@ -180,7 +181,7 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 			}
 			// ILLOP
 			else {
-#ifdef DEBUG
+#ifdef DEBUG_DECODER
 				decoderIllop("Signed and Fractional Multiply");
 #endif
 				inst->op = ILLOP;
@@ -326,9 +327,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 				}
 #else
 				inst->op = ILLOP;
-	#ifdef DEBUG
+	#ifdef DEBUG_DECODER
 				decoderIllop("XMEGA specific opcodes");
-	#endif // DEBUG
+	#endif // DEBUG_DECODER
 #endif // XMEGA_SUPPORTED
 			}
 			else {
@@ -388,9 +389,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 			break;
 		default: // ILLOP
 			inst->op = ILLOP;
-#ifdef DEBUG
+#ifdef DEBUG_DECODER
 			decoderIllop("1 operand instructions");
-#endif // DEBUG
+#endif // DEBUG_DECODER
 		}
 	}
 	// SEx and CLx
@@ -440,9 +441,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 			break;
 		default: // ILLOP
 			inst->op = ILLOP;
-#ifdef DEBUG
+#ifdef DEBUG_DECODER
 			decoderIllop("MISC instructions");
-#endif // DEBUG
+#endif // DEBUG_DECODER
 		}
 	}
 	// JMP
@@ -631,9 +632,9 @@ void decodeInstruction(Instruction *inst, uint16_t *opcode_p) {
 	}
 	else {
 		inst->op = ILLOP;
-#ifdef DEBUG
+#ifdef DEBUG_DECODER
 		decoderIllop("No match");
-#endif // DEBUG
+#endif // DEBUG_DECODER
 	}
 
 	// Unsupported Code Detection

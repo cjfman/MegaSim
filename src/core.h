@@ -102,7 +102,8 @@ typedef struct Port {
 #endif
 } Port;
 
-Port *ports[11];
+Port **ports;
+int num_ports;
 
 typedef enum PinState {
 	H = 1,	// High
@@ -114,7 +115,9 @@ typedef enum PinState {
 typedef struct Pin {
 	Port *port;			// A pointer to the port
 	uint8_t bit;		// The bit index in that port
+	bool harddrive;		// True if a hardware module is driving pin
 	PinState state;		// The current input drive state of the pin
+	PinState hardstate;	// The curent hardware drive state
 #ifndef NO_PERPHS
 	Peripheral *listener;
 #endif
@@ -131,6 +134,8 @@ Peripheral **mem_listeners;		// Array of memory listeners
 bool *mem_claim;				// Set true if a listener may write 
 								// this address
 #endif	// NO_PERPHS
+
+// Interupts
 
 ////////////////////////
 // Device Properties
@@ -150,6 +155,7 @@ uint8_t readMem(uint16_t addr);
 #ifndef NO_PORTS
 PinState readPin(uint8_t pin_num);
 bool writePin(uint8_t pin_num, PinState state);
+bool hardWritePin(uint8_t pin_num, PinState state);
 #endif	// NO_PORTS
 
 //////////////

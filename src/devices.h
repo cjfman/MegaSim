@@ -27,6 +27,15 @@ extern "C" {
 #define PORT_L (1 << 10)
 #define ALL_PORTS (PORT_A|PORT_B|PORT_C|PORT_E|PORT_F|PORT_G|PORT_H|PORT_J|PORT_K|PORT_L)
 
+
+// Timer Definitions
+#define TIMER0 1
+#define TIMER1 (1 << 1)
+#define TIMER2 (1 << 2)
+#define TIMER3 (1 << 3)
+#define TIMER4 (1 << 4)
+#define TIMER5 (1 << 5)
+
 extern uint32_t port_masks[11];
 
 // Core Definition
@@ -43,6 +52,11 @@ typedef struct CoreDef {
 	uint16_t EIND_addr;
 	uint16_t RAMPZ_addr;
 	uint8_t num_pins;			// The number of pins
+	uint16_t ports[12];			// Array of port base addresses
+	uint8_t port_maps[12][8];	// Mapping of ports to pins
+	uint16_t *timers8bit[6];	// Timers as arrays of three addresses
+	uint16_t *timers16bit[6];	// Timers as arrays of three addresses
+	/*
 	uint32_t ports;				// The ports available
 	uint16_t port_a;			// The base address of the port
 	uint16_t port_b;			// Every port has three addresses
@@ -66,6 +80,37 @@ typedef struct CoreDef {
 	uint8_t port_j_map[8];
 	uint8_t port_k_map[8];
 	uint8_t port_l_map[8];
+	*/
+	/*
+	uint8_t timers;				// The timers available
+	uint16_t timer0;			// The base address of the timer registers
+	uint16_t timer1;
+	uint16_t timer2;
+	uint16_t timer3;
+	uint16_t timer4;
+	uint16_t timer5;
+	uint8_t timer0_bits;		// The number of bits in the timer
+	uint8_t timer1_bits;
+	uint8_t timer2_bits;
+	uint8_t timer3_bits;
+	uint8_t timer4_bits;
+	uint8_t timer5_bits;
+	uint16_t TIMSK0;			// The timer interrupt enable registers
+	uint16_t TIMSK1;
+	uint16_t TIMSK2;
+	uint16_t TIMSK3;
+	uint16_t TIMSK4;
+	uint16_t TIMSK5;
+	uint16_t TIFR0;
+	uint16_t TIFR1;
+	uint16_t TIFR2;
+	uint16_t TIFR3;
+	uint16_t TIFR4;
+	uint16_t TIFR5;
+	uint8_t OC0A;				// Hardware pins
+	uint8_t OC0B;				// Output Compare pins
+	uint8_t T0;					// Timer0 external trigger pin
+	*/
 } CoreDef;
 
 extern const CoreDef default_core;

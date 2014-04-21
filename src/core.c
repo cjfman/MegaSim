@@ -12,12 +12,16 @@
 #include "core.h"
 #include "handlers.h"
 #include "decoder.h"
-
-#ifndef NO_PERPHS
 #include "peripherals.h"
-#endif
 
-#undef DEBUG
+#ifdef NO_HARDWARE
+#define NO_PORTS
+#define NO_PERPHS
+#endif	// NO_HARDWARE
+
+#ifdef DEBUG
+#define DEBUG_CORE
+#endif //DEBUG
 
 //bool sreg[8];
 
@@ -42,7 +46,8 @@ void setupMemory(void) {
 	// Ports and Pins
 	pins = (Pin**)malloc(coredef->num_pins*sizeof(Pin*));
 	memset(pins, 0, coredef->num_pins*sizeof(Pin*));
-	uint16_t port_addrs[11] = {coredef->port_a,
+	/*
+	uint16_t ports[11] = {coredef->port_a,
 							   coredef->port_b,
 							   coredef->port_c,
 							   coredef->port_d,
@@ -64,18 +69,26 @@ void setupMemory(void) {
 							     coredef->port_j_map,
 							     coredef->port_k_map,
 							     coredef->port_l_map};
+	*/
 	int i;
-	for (i = 0; i < 11; i++) {
+	/*for (i = 0; i < 11; i++) {
 		// Check to see if port exists
 		if (!(coredef->ports & port_masks[i])) {
 			ports[i] = NULL;
 			continue;
 		}
+	*/
+	// Allocate memory for ports
+	for (i = 0; coredef->ports[i] != 0; i++);
+	num_ports = 0;
+	ports = (Port**)malloc(num_ports*sizeof(Port*));
+	
+	for (i = 0; i < num_ports; i++) {
 		// Make new port object and populate its pointers
 		Port *port = (Port*)malloc(sizeof(Port));
-		port->pin  = main_mem + port_addrs[i];
-		port->ddr  = main_mem + port_addrs[i] + 1;
-		port->port = main_mem + port_addrs[i] + 2;
+		port->pin  = main_mem + coredef->ports[i];
+		port->ddr  = main_mem + coredef->ports[i] + 1;
+		port->port = main_mem + coredef->ports[i] + 2;
 #ifndef NO_PERPHS
 		port->listener = NULL;
 		port->pin_listener = false;
@@ -83,16 +96,17 @@ void setupMemory(void) {
 		int j;
 		for (j = 0; j < 8; j++) {
 			// Initialize all mapped pins
-			port->pin_map[j] = port_maps[i][j] - 1;
-			if(port_maps[i][j] == 0) continue;
+			port->pin_map[j] = coredef->port_maps[i][j] - 1;
+			if(coredef->port_maps[i][j] == 0) continue;
 			Pin *pin = (Pin*)malloc(sizeof(Pin));
 			pin->port = port;
 			pin->bit = j;
+			pin->harddrive = false;
 			pin->state = Z;
 #ifndef NO_PERPHS
 			pin->listener = NULL;
 #endif	// NO_PERPHS
-			pins[port_maps[i][j] - 1] = pin;
+			pins[coredef->port_maps[i][j] - 1] = pin;
 		}
 		ports[i] = port;
 	}
@@ -112,10 +126,12 @@ void teardownMemory(void) {
 	main_mem = NULL;
 #ifndef NO_PORTS
 	int i;
-	for (i = 0; i < 11; i++) {
+	for (i = 0; i < num_ports; i++) {
 		free(ports[i]);
 		ports[i] = NULL;
 	}
+	free(ports);
+	ports = NULL;
 	for (i = 0; i < coredef->num_pins; i++) {
 		if (pins[i]) {
 			free(pins[i]);
@@ -135,21 +151,30 @@ void teardownMemory(void) {
 int runAVR(void) {
 	reset_run();
 	while (true) {
-		Instruction inst = program->instructions[pc];
-#ifdef DEBUG
+		// Load instruction
+		Instruction inst = program->instructions[pc];	
+#ifdef DEBUG_CORE
 		fprintf(stderr, "0x%x\t", pc);
 		printInstruction(&inst);
 		fprintf(stderr, "\n");
-#endif // DEBUG
-		int error = handlers[inst.op](&inst);
-		if (error < 0) {
+#endif // DEBUG_CORE
+		// Run instruction
+		int error = handlers[inst.op](&inst);			
+		if (error != 0) {								
 			return error;
 		}
+		// Check PC for errors
 		if (pc >= program->size) {
 			printf("%d:%d", program->size, pc);
 			return PC_ERROR;
 		}
+#ifndef NO_HARDWARE
+		// Call hardware handler
+		int i;
+		for (i = 0; i < inst.cycles; i++) {
+		}
 		cycle_count += inst.cycles;
+#endif 	// NO_HARDWARE
 #ifndef NO_PERPHS
 		if (perph_write_flag) {
 			checkPeripherals();
@@ -194,9 +219,9 @@ void writeMem(uint16_t addr, uint8_t data) {
 		uint8_t* real_addr = main_mem + addr;
 		int i;
 		// Loop through each port
-		for (i = 0; i < 11; i++) {
+		for (i = 0; i < num_ports; i++) {
 			Port *port = ports[i];
-			if (port == NULL) continue;			// Port does not exist
+			//if (port == NULL) continue;			// Port does not exist
 			if (real_addr == port->pin) break;	// Read only
 			if (real_addr == port->port || real_addr == port->ddr) {
 				main_mem[addr] = data;					// Save data
@@ -251,7 +276,7 @@ void writeMem(uint16_t addr, uint8_t data) {
 				break;	// Do not look at other ports
 			}
 		}
-		if (i == 11) {
+		if (i == num_ports) {
 			// None of the ports matched
 			main_mem[addr] = data;
 		}
@@ -300,6 +325,9 @@ PinState readPin(uint8_t pin_num) {
 	int mode = (*port->ddr & masks[pin->bit]);
 	if (mode) {
 		// Output mode
+		if (pin->harddrive) {
+			return pin->hardstate;
+		}
 		return (*port->port & masks[pin->bit]) ? H : L;
 	}
 	// Input mode
@@ -309,7 +337,7 @@ PinState readPin(uint8_t pin_num) {
 bool writePin(uint8_t pin_num, PinState state) {
 	if (pin_num > coredef->num_pins) 
 		return false;
-	Pin *pin = pins[pin_num];
+	Pin *pin = pins[pin_num - 1];
 	if (pin == NULL) 
 		return false;
 	pin->state = state;							// Update pin state
@@ -339,5 +367,31 @@ bool writePin(uint8_t pin_num, PinState state) {
 	}
 	// */
 	return true;
+}	
+
+bool hardWritePin(uint8_t pin_num, PinState state) {
+	if (pin_num > coredef->num_pins) {
+		return false;
+	}
+	Pin *pin = pins[pin_num - 1];
+	if (pin == NULL) {
+		return false;
+	}
+	pin->hardstate = state;
+	Port *port = pin->port;
+	if (!pin->harddrive) {
+		// Pin is not driven by hardware. Do not notify listener
+		return true;
+	}
+	// Notify listener
+	Peripheral *perph;
+	if ((perph = pin->listener) != NULL 
+		|| ((perph = port->listener) != NULL)) 
+	{
+		int bit = pin->bit;
+		pinNotification(pin->listener, pin_num, state);
+	}
+	return true;
 }
+
 #endif 	// NO_PORTS

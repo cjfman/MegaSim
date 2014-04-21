@@ -3,7 +3,11 @@
 #ifndef TIMERS_h
 #define TIMERS_h
 
-#ifndef NO_HARDWARE
+#ifdef NO_HARDWARE
+#define NO_TIMERS
+#endif	// NO_HARDWARE
+
+#ifndef NO_TIMERS
 
 #include <stdlib.h>
 #include <inttypes.h>
@@ -72,6 +76,6 @@ void runTimer8bit(Timer8bit *timer);
 }
 #endif // __cplusplus
 
-#endif	// NO_HARDWARE
+#endif	// NO_TIMERS
 
 #endif 	// TIMERS_h

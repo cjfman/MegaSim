@@ -484,7 +484,7 @@ bool setpHandler(Peripheral *perph) {
 	}
 	uint8_t port_id = (uint8_t) message[0];	// Format port
 	Port *port;
-	if (port_id > 10 || (port = ports[port_id]) == NULL) {
+	if (port_id >= num_ports || (port = ports[port_id]) == NULL) {
 		// Port does not exist
 		sendChar(perph, LMP_RANGE);
 		return false;
@@ -588,7 +588,7 @@ bool writepHandler(Peripheral *perph) {
 	}
 	uint8_t port_id = (uint8_t) message[0];	// Get port number
 	Port *port;
-	if (port_id > 10 || (port = ports[port_id]) == NULL) {
+	if (port_id >= num_ports || (port = ports[port_id]) == NULL) {
 		sendChar(perph, LMP_RANGE);			// Port does not exist
 		return false;
 	}
@@ -600,7 +600,7 @@ bool writepHandler(Peripheral *perph) {
 	int i;
 	for (i = 0; i < 8; i++) {
 		// Loop through each pin
-		writePin(port->pin_map[i], (message[1] >> i) & 0x01);
+		writePin(port->pin_map[i] + 1, (message[1] >> i) & 0x01);
 	}
 	sendChar(perph, LMP_ACK);
 	portNotification(perph, port_id, *port->pin);
@@ -630,7 +630,7 @@ bool writepnHandler(Peripheral *perph) {
 		sendChar(perph, LMP_VALUE);		// Invalid pin value
 		return false;
 	}
-	if (!writePin(pin_id - 1, state)) {
+	if (!writePin(pin_id, state)) {
 		sendChar(perph, LMP_RANGE);		// Pin does not exist
 		return false;
 	}
