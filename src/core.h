@@ -49,6 +49,7 @@ uint64_t cycle_count;
 
 // Main Memory
 uint8_t *main_mem;
+uint8_t *mem_mask;	// Contains the write mask for every SF register
 
 // General Perpose Registers
 uint8_t *regs;

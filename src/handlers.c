@@ -5,6 +5,7 @@
 // MIT Lisense
 //
 
+#include <string.h>
 #include "handlers.h"
 #include "core.h"
 #include "debugterm.h"
@@ -180,6 +181,7 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 #define CALC_S sreg[SREG] = (sreg[NREG]^sreg[VREG]) & 0x01;
 
 void reset_run(void) {
+	memset(main_mem, 0, coredef->sram_start);
 	pc = 0;
 	cycle_count = 0;
 	*SP = coredef->sram_end;

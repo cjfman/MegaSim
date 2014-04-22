@@ -13,22 +13,36 @@
 #include "handlers.h"
 #include "decoder.h"
 #include "peripherals.h"
+#include "timers.h"
 
 #ifdef NO_HARDWARE
 #define NO_PORTS
 #define NO_PERPHS
+#define NO_TIMERS
 #endif	// NO_HARDWARE
 
 #ifdef DEBUG
 #define DEBUG_CORE
 #endif //DEBUG
 
-//bool sreg[8];
+uint8_t masks[8] = { 0x01,
+					 0x02,
+					 0x04,
+					 0x08,
+					 0x10,
+					 0x20,
+					 0x40,
+					 0x80 };
+
+
+// Memory Management /////////////////////////////////////////////////////
 
 void setupMemory(void) {
 	// Initialize pointers
 	// Main Memory
 	main_mem = (uint8_t*)malloc(coredef->mem_size);
+	mem_mask = (uint8_t*)malloc(coredef->sram_start); 	// Only for SF regs
+	memset(mem_mask, 0xFF, coredef->sram_start);	  	// Default all write
 	regs = main_mem;
 	regps = (uint16_t*)regs; 		// Register pairs
 	RW = (uint16_t*)(&regs[24]);  	// R25:R24
@@ -66,7 +80,13 @@ void setupMemory(void) {
 		for (j = 0; j < 8; j++) {
 			// Initialize all mapped pins
 			port->pin_map[j] = coredef->port_maps[i][j] - 1;
-			if(coredef->port_maps[i][j] == 0) continue;
+			if(coredef->port_maps[i][j] == 0) {
+				// Set write mask
+				mem_mask[coredef->ports[i]] &= ~masks[j];
+				mem_mask[coredef->ports[i] + 1] &= ~masks[j];
+				mem_mask[coredef->ports[i] + 2] &= ~masks[j];
+				continue;
+			}
 			Pin *pin = (Pin*)malloc(sizeof(Pin));
 			pin->port = port;
 			pin->bit = j;
@@ -81,8 +101,37 @@ void setupMemory(void) {
 	}
 #endif // NO_PORTS
 
-	// Listeners
+#ifndef NO_TIMERS
+	// 8bit Timers
+	for (i = 0; coredef->timers8bit[i] != 0; i++); // Count timers
+	num_timers8bit = i;
+	timers8bit = (Timer8Bit**)malloc((num_timers8bit)*sizeof(Timer8bit*));
+	for (i = 0; i < num_timers8bit; i++) {
+		// Allocate and setup timer values
+		Timer8bit* timer = (Timer8bit*)malloc(sizeof(Timer8bit));
+		timer->TCNT =  main_mem + coredef->timers8bit[i][0];
+		timer->TCCRA = main_mem + coredef->timers8bit[i][0] + 1;
+		timer->TCCRB = main_mem + coredef->timers8bit[i][0] + 2;
+		timer->TIMSK = main_mem + coredef->timers8bit[i][1];
+		timer->TIFR  = main_mem + coredef->timers8bit[i][2];
+		timer->OCA   = main_mem + coredef->timers8bit[i][3];
+		timer->OCB   = main_mem + coredef->timers8bit[i][4];
+		timer->EXT   = main_mem + coredef->timers8bit[i][5];
+		timers8bit[i] = timer;
+	}
+	// 16bit Timers
+	for (i = 0; coredef->timers16bit[i] != 0; i++); // Count timers
+	num_timers16bit = i;
+	timers16bit = 
+	  (Timer16Bit**)malloc((num_timers16bit)*sizeof(Timer16bit*));
+	for (i = 0; i < num_timers16bit; i++) {
+		// Allocate and setup timer values
+		Timer16bit* timer = (Timer16Bit*)malloc(sizeof(Timer16bit));
+	}
+#endif	// NO_TIMERS
+
 #ifndef NO_PERPHS
+	// Listeners
 	gl_flag = false;
 	mem_listeners = 
 		(Peripheral**)malloc(coredef->mem_size*sizeof(Peripheral*));
@@ -110,13 +159,27 @@ void teardownMemory(void) {
 	free(pins);
 	pins = NULL;
 #endif // NO_PORTS
+#ifndef NO_TIMERS
+	for (i = 0; i < num_timers8bit; i++) {
+		free(timers8bit[i]);
+	}
+	free(timers8bit);
+	timers8bit = NULL;
+	for (i = 0; i < num_timers16bit; i++) {
+		free(timers16bit[i]);
+	}
+	free(timers16bit);
+	timers16bit = NULL;
+#endif	// NO_TIMERS
 #ifndef NO_PERPHS
 	free(mem_listeners);
 	mem_listeners = NULL;
 #endif
 }
 
-// Main Control Loop
+
+// Main Control Loop ///////////////////////////////////////////////////
+
 int runAVR(void) {
 	reset_run();
 	while (true) {
@@ -153,18 +216,15 @@ int runAVR(void) {
 	return 0;
 }
 
-uint8_t masks[8] = { 0x01,
-					 0x02,
-					 0x04,
-					 0x08,
-					 0x10,
-					 0x20,
-					 0x40,
-					 0x80 };
+
+// Main Memory Read/Write Handlers ///////////////////////////////////////
 
 void writeMem(uint16_t addr, uint8_t data) {
 	if (addr >= coredef->sram_start) {
 		main_mem[addr] = data;
+	}
+	else {
+		data &= mem_mask[addr];
 	}
 	if (addr == coredef->sreg_addr) {
 		sreg[0] = data & 0x1;
@@ -303,6 +363,9 @@ PinState readPin(uint8_t pin_num) {
 	return (*port->pin & masks[pin->bit]) ? H : L;
 }
 
+
+// Port Management ////////////////////////////////////////////////////////
+
 bool writePin(uint8_t pin_num, PinState state) {
 	if (pin_num > coredef->num_pins) 
 		return false;
@@ -362,5 +425,13 @@ bool hardWritePin(uint8_t pin_num, PinState state) {
 	}
 	return true;
 }
-
 #endif 	// NO_PORTS
+
+
+// Hardware Management ////////////////////////////////////////////////////
+#ifndef NO_HARDWARE
+#endif	// NO_HARDWARE
+
+// Timers /////////////////////////////////////////////////////////////////
+#ifndef NO_TIMERS
+#endif 	// NO_TIMERS

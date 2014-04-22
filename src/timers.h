@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <core.h>
+//#include "core.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +44,8 @@ typedef struct Timer8bit {
 	uint8_t EXT;		// External trigger pin
 } Timer8bit;
 
-extern **Timer8bit timers8bit;	// Null terminated list of timers
+**Timer8bit timers8bit;	// Null terminated list of timers
+int num_timers8bit;
 
 typedef struct Timer16bit {
 	uint8_t TCCRA;	// Timer Control A
@@ -62,7 +63,8 @@ typedef struct Timer16bit {
 	uint8_t OCRCH;	// Output Compare C high byte
 } Timer16bit;
 
-extern **Timer16bit timers16bit;	// Null terminated list of timers
+**Timer16bit timers16bit;	// Null terminated list of timers
+int num_timers16bit;
 
 uint32_t prescaler;
 
@@ -75,7 +77,5 @@ void runTimer8bit(Timer8bit *timer);
 #ifdef __cplusplus
 }
 #endif // __cplusplus
-
 #endif	// NO_TIMERS
-
 #endif 	// TIMERS_h

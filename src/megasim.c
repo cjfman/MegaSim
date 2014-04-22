@@ -36,9 +36,11 @@ int main(int argc, char* argv[]) {
 	// Setup core
 	coredef = (CoreDef*)malloc(sizeof(CoreDef));		// Allocate core
 	memcpy(coredef, &default_core, sizeof(CoreDef));	// Load core
+	/*
 	if (coredef->default_addrs) {
 		setDefaultAddresses(coredef);
 	}
+	*/
 	setupMemory();
 
 	// Load Program

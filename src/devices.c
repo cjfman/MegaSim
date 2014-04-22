@@ -31,16 +31,16 @@
 
 // Default timers
 // {base address, TIMSKn, TIFRn, OCnA, OCnB, Tn}
-uint16_t timer0[6] = { 0x46, 0x6E, 0x35, 1, 2, 3};
-uint16_t timer1[6] = { 0x84, 0x6F, 0x36, 0, 0, 0};
-uint16_t timer2[6] = { 0xB2, 0x70, 0x37, 0, 0, 0};
-uint16_t timer3[6] = { 0x94, 0x71, 0x38, 0, 0, 0};
-uint16_t timer4[6] = { 0xA4, 0x72, 0x39, 0, 0, 0};
-uint16_t timer5[6] = {0x124, 0x73, 0x3A, 0, 0, 0};
+#define timer0 { 0x46, 0x6E, 0x35, 1, 2, 3}
+#define timer1 { 0x84, 0x6F, 0x36, 0, 0, 0}
+#define timer2 { 0xB2, 0x70, 0x37, 0, 0, 0}
+#define timer3 { 0x94, 0x71, 0x38, 0, 0, 0}
+#define timer4 { 0xA4, 0x72, 0x39, 0, 0, 0}
+#define timer5 {0x124, 0x73, 0x3A, 0, 0, 0}
 
 const CoreDef default_core = {
 	.type 			= CORE_L_XMEGA,
-	.default_addrs 	= true,
+//	.default_addrs 	= true,
 	.mem_size 		= 65536,
 	.prog_mem_size 	= 128*1024/2,
 	.sram_start		= 0x0100,
@@ -56,14 +56,15 @@ const CoreDef default_core = {
 	.port_maps		= {port_a_map, port_b_map, port_c_map, port_d_map, 
 					   port_e_map, port_f_map, port_g_map, port_h_map, 
 					   port_j_map, port_k_map, port_l_map, 0},
-	.timers8bit		= {timer0, timer2, NULL},
-	.timers16bit	= {timer1, timer3, timer4, timer5, NULL}
+	.timers8bit		= {timer0, timer2, 0},
+	.timers16bit	= {timer1, timer3, timer4, timer5, 0}
 };
 
 
+/*
 void setDefaultAddresses(CoreDef *core) {
 	core->SP_addr 		= default_core.SP_addr;
 	core->EIND_addr		= default_core.EIND_addr;
 	core->RAMPZ_addr	= default_core.RAMPZ_addr;
 }
-
+*/

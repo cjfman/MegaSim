@@ -41,7 +41,7 @@ extern uint32_t port_masks[11];
 // Core Definition
 typedef struct CoreDef {
 	uint8_t type;
-	bool default_addrs;			// Set true to use default memory addresses
+	//bool default_addrs;			// Set true to use default memory addresses
 	unsigned int mem_size;		// Size in bytes
 	unsigned int prog_mem_size;	// Size in words
 	uint16_t sram_start;		// Address of the start of the SRAM
@@ -59,9 +59,9 @@ typedef struct CoreDef {
 								// DDRx is the following address
 								// and PORTx after that 
 	uint8_t port_maps[12][8];	// Mapping of ports to pins
-	uint16_t *timers8bit[6];	// Timers as arrays
+	uint16_t timers8bit[7][6];	// Timers as arrays
 								// {base address, TIMSKn, TIFRn, OCnA, OCnB, Tn}
-	uint16_t *timers16bit[6];	// Timers as arrays of three addresses
+	uint16_t timers16bit[7][6];	// Timers as arrays of three addresses
 } CoreDef;
 
 extern const CoreDef default_core;

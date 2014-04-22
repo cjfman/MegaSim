@@ -73,9 +73,6 @@
 #define clrOCFA(timer) (*timer->TCCRB & ~(0x01 << 1))
 #define clrOCFB(timer) (*timer->TCCRB & ~(0x01 << 2))
 
-Timer8bit **timers8bit = NULL;
-Timer16bit **timers16bit = NULL;
-
 // Local Functions //////////////////////////////////////////////////
 
 inline handleCOM(uint8_t COM, uint8_t *pin) {
@@ -99,29 +96,28 @@ inline handleCOM(uint8_t COM, uint8_t *pin) {
 
 void resetTimers(void) {
 	prescaler = 0;
-	if (tiemrs8bit != NULL) {
-		// Loop through timer list
-		Timer8bit **timer;
-		for (timer = timers8bit; *timer != NULL; timer++) {
-			// Set registers to default values
-			*(*timer)->TCCRA = 0;
-			*(*timer)->TCCRB = 0;
-			*(*timer)->TCNT = 0;
-			(*timer)->OCRA = 0;
-			(*timer)->OCRB = 0;
-			*(*timer)->OCRA_buf = 0;
-			*(*timer)->OCRB_buf = 0;
-			(*timer)->TIFR = 0;
-			(*timer)->ext_state = readPin((*timer)->EXT);
-			updateTimer8bit(*timer);
-		}
+	// Loop through timer list
+	//for (timer = timers8bit; *timer != NULL; timer++) {
+	int i;
+	for (i = 0; i < num_timers8bit; i++) {
+		Timer8bit *timer = timers8bit[i];
+		// Set registers to default values
+		*timer->TCCRA = 0;
+		*timer->TCCRB = 0;
+		*timer->TCNT = 0;
+		timer->OCRA = 0;
+		timer->OCRB = 0;
+		*timer->OCRA_buf = 0;
+		*timer->OCRB_buf = 0;
+		timer->TIFR = 0;
+		timer->ext_state = readPin((*timer)->EXT);
+		updateTimer8bit(*timer);
 	}
 	// TODO: 16bit timer reset
-	if (timers16bit != NULL) {
-		Timer16bit **timer;
-		for (timer = timers16bit; *timer != NULL; timer++) {
-			updateTimer16bit(*timer);
-		}
+	//for (timer = timers16bit; *timer != NULL; timer++) {
+	for (i = 0; i < num_timers16bit; i++)
+		Timer16bit *timer = timers16bit[i];
+		updateTimer16bit(*timer);
 	}
 }
 
