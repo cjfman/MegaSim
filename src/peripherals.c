@@ -615,10 +615,12 @@ bool writepnHandler(Peripheral *perph) {
 	}
 	int pin_id = message[0];
 	Pin *pin;
+	// Validate pin
 	if (pin_id > coredef->num_pins || (pin = pins[pin_id - 1]) == NULL) {
 		sendChar(perph, LMP_RANGE);		// Pin does not exist
 		return false;
 	}
+	// Get port
 	Port *port = pin->port;
 	if (pin->listener != perph && port->listener != perph) {
 		// Pin or port is taken
@@ -626,10 +628,12 @@ bool writepnHandler(Peripheral *perph) {
 		return false;
 	}
 	PinState state = message[1];
+	// Check for valid pin state
 	if (state > 3) {
 		sendChar(perph, LMP_VALUE);		// Invalid pin value
 		return false;
 	}
+	// Attempt to write to pin
 	if (!writePin(pin_id, state)) {
 		sendChar(perph, LMP_RANGE);		// Pin does not exist
 		return false;

@@ -33,7 +33,7 @@ uint32_t port_masks[11] = {
 #define port_k	0x106
 #define port_l	0x109
 #define port_a_map { 0,	1,	 2,	 3,	 4,	 5,	 6,	 7}
-#define port_b_map { 8,	9,	10,	11,	12,	13,	13,	14}
+#define port_b_map { 8,	9,	10,	11,	12,	13,	14,	15}
 #define port_c_map {16, 17,	18,	19,	20,	21,	22,	23}
 #define port_d_map {24,	25,	26,	27,	28,	29,	30,	31}
 #define port_e_map {32,	33,	34,	35,	36,	37,	38,	39}

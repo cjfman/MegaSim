@@ -222,7 +222,7 @@ void writeMem(uint16_t addr, uint8_t data) {
 		for (i = 0; i < num_ports; i++) {
 			Port *port = ports[i];
 			//if (port == NULL) continue;			// Port does not exist
-			if (real_addr == port->pin) break;	// Read only
+			if (real_addr == port->pin) break;		// Read only
 			if (real_addr == port->port || real_addr == port->ddr) {
 				main_mem[addr] = data;					// Save data
 				uint8_t set = *port->port;				// Set bits that pull high
@@ -268,7 +268,7 @@ void writeMem(uint16_t addr, uint8_t data) {
 					}
 				}
 				if (port->listener) {
-					portNotification(port->listener, i, *port->port);
+					portNotification(port->listener, i, *port->pin);
 					break;	// Do not look at other ports
 							// Do not send pin notifications
 				}
