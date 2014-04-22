@@ -53,64 +53,15 @@ typedef struct CoreDef {
 	uint16_t RAMPZ_addr;
 	uint8_t num_pins;			// The number of pins
 	uint16_t ports[12];			// Array of port base addresses
+								// The array should end in 0
+								// Every port has three addresses
+								// This address designates PINx
+								// DDRx is the following address
+								// and PORTx after that 
 	uint8_t port_maps[12][8];	// Mapping of ports to pins
-	uint16_t *timers8bit[6];	// Timers as arrays of three addresses
+	uint16_t *timers8bit[6];	// Timers as arrays
+								// {base address, TIMSKn, TIFRn, OCnA, OCnB, Tn}
 	uint16_t *timers16bit[6];	// Timers as arrays of three addresses
-	/*
-	uint32_t ports;				// The ports available
-	uint16_t port_a;			// The base address of the port
-	uint16_t port_b;			// Every port has three addresses
-	uint16_t port_c;			// This address designates PINx
-	uint16_t port_d;			// DDRx is the following address
-	uint16_t port_e;			// and PORTx after that
-	uint16_t port_f;
-	uint16_t port_g;
-	uint16_t port_h;
-	uint16_t port_j;
-	uint16_t port_k;
-	uint16_t port_l;
-	uint8_t port_a_map[8];
-	uint8_t port_b_map[8];
-	uint8_t port_c_map[8];
-	uint8_t port_d_map[8];
-	uint8_t port_e_map[8];
-	uint8_t port_f_map[8];
-	uint8_t port_g_map[8];
-	uint8_t port_h_map[8];
-	uint8_t port_j_map[8];
-	uint8_t port_k_map[8];
-	uint8_t port_l_map[8];
-	*/
-	/*
-	uint8_t timers;				// The timers available
-	uint16_t timer0;			// The base address of the timer registers
-	uint16_t timer1;
-	uint16_t timer2;
-	uint16_t timer3;
-	uint16_t timer4;
-	uint16_t timer5;
-	uint8_t timer0_bits;		// The number of bits in the timer
-	uint8_t timer1_bits;
-	uint8_t timer2_bits;
-	uint8_t timer3_bits;
-	uint8_t timer4_bits;
-	uint8_t timer5_bits;
-	uint16_t TIMSK0;			// The timer interrupt enable registers
-	uint16_t TIMSK1;
-	uint16_t TIMSK2;
-	uint16_t TIMSK3;
-	uint16_t TIMSK4;
-	uint16_t TIMSK5;
-	uint16_t TIFR0;
-	uint16_t TIFR1;
-	uint16_t TIFR2;
-	uint16_t TIFR3;
-	uint16_t TIFR4;
-	uint16_t TIFR5;
-	uint8_t OC0A;				// Hardware pins
-	uint8_t OC0B;				// Output Compare pins
-	uint8_t T0;					// Timer0 external trigger pin
-	*/
 } CoreDef;
 
 extern const CoreDef default_core;

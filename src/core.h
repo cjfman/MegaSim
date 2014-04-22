@@ -79,18 +79,6 @@ uint8_t *SPL;	// Stack pointer low
 
 #ifndef NO_PORTS
 // I/O Pins
-#define PORTA 0
-#define PORTB 1
-#define PORTC 2
-#define PORTD 3
-#define PORTE 4
-#define PORTF 5
-#define PORTG 6
-#define PORTH 7
-#define PORTJ 8
-#define PORTK 9
-#define PORTL 10
-
 typedef struct Port {
 	uint8_t *pin;		// Address of PINx
 	uint8_t *ddr;		// Address of DDRx
