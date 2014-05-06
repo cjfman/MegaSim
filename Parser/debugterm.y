@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 void yyerror(const char *s);
+int yylex(void);
 
 int yydebug;
 int handle_command;
@@ -153,7 +154,7 @@ int main(void) {
 	yyparse();
 	return 0;
 }
-#endif BISON_COMPILE_MAIN
+#endif // BISON_COMPILE_MAIN
 
 #ifdef __cplusplus
 }

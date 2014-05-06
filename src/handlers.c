@@ -5,6 +5,7 @@
 // MIT Lisense
 //
 
+#include <stdio.h>
 #include <string.h>
 #include "handlers.h"
 #include "core.h"
@@ -154,6 +155,43 @@ int (*handlers[NUM_CODES])(Instruction*) = {
 	unhandled_run,	// 126
 	unhandled_run	// 127
 };
+
+// Errors /////////////////////////////////////////////////////////////
+
+void printError(int error) {
+	char const *c;
+	switch(error) {
+	case MEM_ERROR:
+		c = "Memory Error";
+		break;
+	case PROG_MEM_ERROR:
+		c = "Prgram Memroy Error";
+		break;
+	case SP_ERROR:
+		c = "Stack Pointer Error";
+		break;
+	case BAD_REG_ERROR:
+		c = "Bad Register Error";
+		break;
+	case ILLOP_ERROR:
+		c = "ILLOP Error";
+		break;
+	case UNHANDLED_ERROR:
+		c ="Unhandled Instruction Error";
+		break;
+	case PC_ERROR:
+		c = "Program Counter Error";
+		break;
+	case EXIT_ERROR:
+		c = "Program Quiting";
+		break;
+	default:
+		printf("Code %d: ", error);
+		c = "Unknown Error";
+		break;
+	}
+	printf("%s at PC = 0x%X\n", c, pc);
+}
 
 /////////////////////////////////
 // Instruction Implementations

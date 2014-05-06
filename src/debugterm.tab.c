@@ -110,6 +110,7 @@ extern "C" {
 #endif
 
 void yyerror(const char *s);
+int yylex(void);
 
 int yydebug;
 int handle_command;
@@ -136,14 +137,14 @@ int handle_command;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 24 "debugterm.y"
+#line 25 "debugterm.y"
 {
 	int ival;
 	char cval;
 	char *sval;
 }
 /* Line 193 of yacc.c.  */
-#line 147 "debugterm.tab.c"
+#line 148 "debugterm.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -156,7 +157,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 160 "debugterm.tab.c"
+#line 161 "debugterm.tab.c"
 
 #ifdef short
 # undef short
@@ -446,9 +447,9 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    52,    52,    53,    54,    55,    56,    57,    58,    61,
-      69,    70,    73,    74,    75,    76,    79,    80,    81,    89,
-      92,    93,    94,    98,    99
+       0,    53,    53,    54,    55,    56,    57,    58,    59,    62,
+      70,    71,    74,    75,    76,    77,    80,    81,    82,    90,
+      93,    94,    95,    99,   100
 };
 #endif
 
@@ -1370,42 +1371,42 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 52 "debugterm.y"
-    { handle_command = 0 ;}
-    break;
-
-  case 3:
 #line 53 "debugterm.y"
     { handle_command = 0 ;}
     break;
 
-  case 4:
+  case 3:
 #line 54 "debugterm.y"
     { handle_command = 0 ;}
     break;
 
-  case 5:
+  case 4:
 #line 55 "debugterm.y"
+    { handle_command = 0 ;}
+    break;
+
+  case 5:
+#line 56 "debugterm.y"
     { handle_command = CONTINUE ;}
     break;
 
   case 6:
-#line 56 "debugterm.y"
+#line 57 "debugterm.y"
     { handle_command = STEP ;}
     break;
 
   case 7:
-#line 57 "debugterm.y"
+#line 58 "debugterm.y"
     { handle_command = DISASM ;}
     break;
 
   case 8:
-#line 58 "debugterm.y"
+#line 59 "debugterm.y"
     { handle_command = QUIT ;}
     break;
 
   case 9:
-#line 61 "debugterm.y"
+#line 62 "debugterm.y"
     { 
 										main_mem[(yyvsp[(1) - (3)].ival)] = (yyvsp[(3) - (3)].ival); 
 										if ((yyvsp[(1) - (3)].ival) < 32)
@@ -1416,37 +1417,37 @@ yyreduce:
     break;
 
   case 10:
-#line 69 "debugterm.y"
+#line 70 "debugterm.y"
     { printf("0x%X\n", (yyvsp[(2) - (2)].ival)); ;}
     break;
 
   case 11:
-#line 70 "debugterm.y"
+#line 71 "debugterm.y"
     { printf("%d\n", (yyvsp[(2) - (2)].ival)); ;}
     break;
 
   case 13:
-#line 74 "debugterm.y"
+#line 75 "debugterm.y"
     { (yyval.ival) = -1 * (yyvsp[(2) - (2)].ival); ;}
     break;
 
   case 14:
-#line 75 "debugterm.y"
+#line 76 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (3)].ival) + (yyvsp[(3) - (3)].ival); ;}
     break;
 
   case 15:
-#line 76 "debugterm.y"
+#line 77 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (3)].ival) - (yyvsp[(3) - (3)].ival); ;}
     break;
 
   case 17:
-#line 80 "debugterm.y"
+#line 81 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (3)].ival) * (yyvsp[(3) - (3)].ival); ;}
     break;
 
   case 18:
-#line 81 "debugterm.y"
+#line 82 "debugterm.y"
     { 
 									if((yyvsp[(3) - (3)].ival) == 0) 
 										yyerror("undefined"); 
@@ -1456,32 +1457,32 @@ yyreduce:
     break;
 
   case 19:
-#line 89 "debugterm.y"
+#line 90 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (1)].ival); ;}
     break;
 
   case 20:
-#line 92 "debugterm.y"
+#line 93 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (1)].ival); ;}
     break;
 
   case 21:
-#line 93 "debugterm.y"
+#line 94 "debugterm.y"
     { (yyval.ival) = main_mem[(yyvsp[(1) - (1)].ival)]; ;}
     break;
 
   case 22:
-#line 94 "debugterm.y"
+#line 95 "debugterm.y"
     { (yyval.ival) = (yyvsp[(2) - (3)].ival); ;}
     break;
 
   case 23:
-#line 98 "debugterm.y"
+#line 99 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (1)].ival); ;}
     break;
 
   case 24:
-#line 99 "debugterm.y"
+#line 100 "debugterm.y"
     { 
 									if ((yyvsp[(1) - (1)].ival) > 31)
 										yyerror("Not valid register");
@@ -1492,7 +1493,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 1496 "debugterm.tab.c"
+#line 1497 "debugterm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1706,7 +1707,7 @@ yyreturn:
 }
 
 
-#line 108 "debugterm.y"
+#line 109 "debugterm.y"
 
 
 void yyerror(const char *s) {
@@ -1755,7 +1756,7 @@ int main(void) {
 	yyparse();
 	return 0;
 }
-#endif BISON_COMPILE_MAIN
+#endif // BISON_COMPILE_MAIN
 
 #ifdef __cplusplus
 }
