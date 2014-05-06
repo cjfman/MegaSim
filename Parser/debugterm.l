@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include "debugterm.tab.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif	// __cplusplus
+
 %}
 
 %option noyywrap 
@@ -11,7 +15,7 @@
 %%
 
  /* White space */
-[ \n\t] ;
+[ \t] ;
 
  /* Constants */
 (0x[0-9a-fA-F]+)|[0-9]+			{
@@ -40,8 +44,16 @@
 							return PRINT_HEX;
 						}
 
+continue				{ return CONTINUE; }
+
+step					{ return STEP; }
+
+disasm					{ return DISASM; }
+
+quit					{ return QUIT; }
+
  /* end sequence */
-[;]						{ 
+[\n;]						{ 
 							return 0;
 						}
 
@@ -50,8 +62,6 @@
 
 %%
 
-/*
-int main() {
-	yylex();
+#ifdef __cplusplus
 }
-*/
+#endif	// __cplusplus
