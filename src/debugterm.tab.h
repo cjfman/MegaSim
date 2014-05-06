@@ -66,7 +66,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 24 "debugterm.y"
+#line 25 "debugterm.y"
 {
 	int ival;
 	char cval;
