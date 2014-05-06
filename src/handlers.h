@@ -27,16 +27,18 @@ extern "C" {
 // unrecoverable
 // All errors are negative
 
-#define MEM_ERROR 		-1
-#define PROG_MEM_ERROR 	-2
-#define SP_ERROR 		-3
-#define BAD_REG_ERROR 	-4
-#define ILLOP_ERROR		-5
-#define UNHANDLED_ERROR -1024
-#define PC_ERROR		-1025
-#define EXIT_ERROR		-1026
+#define MEM_ERROR 		1
+#define PROG_MEM_ERROR 	2
+#define SP_ERROR 		3
+#define BAD_REG_ERROR 	4
+#define ILLOP_ERROR		5
+#define UNHANDLED_ERROR 6
+#define PC_ERROR		7
+#define EXIT_ERROR		8
 
 int error_val;
+
+void printError(int error);
 
 //////////////////////////////////
 // Instruction Implementations

@@ -46,38 +46,7 @@ void setupMemory(void) {
 	// Ports and Pins
 	pins = (Pin**)malloc(coredef->num_pins*sizeof(Pin*));
 	memset(pins, 0, coredef->num_pins*sizeof(Pin*));
-	/*
-	uint16_t ports[11] = {coredef->port_a,
-							   coredef->port_b,
-							   coredef->port_c,
-							   coredef->port_d,
-							   coredef->port_e,
-							   coredef->port_f,
-							   coredef->port_g,
-							   coredef->port_h,
-							   coredef->port_j,
-							   coredef->port_k,
-							   coredef->port_l};
-	uint8_t *port_maps[11] = {   coredef->port_a_map,
-							     coredef->port_b_map,
-							     coredef->port_c_map,
-							     coredef->port_d_map,
-							     coredef->port_e_map,
-							     coredef->port_f_map,
-							     coredef->port_g_map,
-							     coredef->port_h_map,
-							     coredef->port_j_map,
-							     coredef->port_k_map,
-							     coredef->port_l_map};
-	*/
 	int i;
-	/*for (i = 0; i < 11; i++) {
-		// Check to see if port exists
-		if (!(coredef->ports & port_masks[i])) {
-			ports[i] = NULL;
-			continue;
-		}
-	*/
 	// Allocate memory for ports
 	for (i = 0; coredef->ports[i] != 0; i++);	// Count ports
 	num_ports = i;

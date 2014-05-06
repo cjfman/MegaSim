@@ -15,14 +15,19 @@
 #include <math.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
 #include "megasim.h"
 #include "core.h"
 #include "devices.h"
 #include "decoder.h"
-
-#ifndef NO_PERPHS
+#include "handlers.h"
 #include "peripherals.h"
-#endif
+
+#ifdef NO_HARDWARE
+#define NO_PERPHS
+#define NO_TIMERS
+#define NO_PORTS
+#endif	// NO_HARDWARE
 
 int main(int argc, char* argv[]) {
 	signal(SIGINT, intHandler);
@@ -55,34 +60,14 @@ int main(int argc, char* argv[]) {
 	if (args.p_count) {
 		fprintf(stderr, "Using the following peripherials\n");
 		openPeripherals(args.peripherals, args.p_count);
-		/*
-		int i;
-		for (i = 0; i < args.p_count; i++) {
-			const char* good = (perph_errors[i]) ? "failed" : "launched";
-			fprintf(stderr, ">>%s...%s\n", args.peripherals[i], good);
-		}
-		// Allow time for peripherals to launch
-		sleep(3);
-		startPeripherals();
-		// */
 	}
 #endif // NO_PERPHS
-
-	/*
-	int i;
-	for (i = 0; i < 64; i++) {
-		if (i != 0 && i%16 == 0) {
-			fprintf(stderr, "\n");
-		}
-		fprintf(stderr, "%02x", ((unsigned char*)(program->data))[i]);
-	}
-	// */
 
 	// Start simulator
 	fprintf(stderr, "Starting simulator\n");
 	error = runAVR();
 	if (error) {
-		fprintf(stderr, "Unrecoverable Error: %d\n", error);
+		printError(error);
 	}
 
 	// Free memory
@@ -331,20 +316,30 @@ int parseArgs(int argc, char* argv[], Args* args) {
 		case 'h':
 			args->hex = true;
 			break;
-		/*
 		case 'o':
-			if (!parseInt(&args->stdout_addr, optarg)) {
-				fprintf(stderr, "-o must be number\n");
+			errno = 0;
+			if ((args->stdout_addr = strtol(optarg, NULL, 0)) == 0) {
+				if (errno != 0) {
+					fprintf(stderr, "-o must be number\n");
+				}
+				else {
+					fprintf(stderr, "-o cannot be 0");
+				}
 				return 1;
 			}
 			break;
 		case 'e':
-			if (!parseInt(&args->stderr_addr, optarg)) {
-				fprintf(stderr, "-e must be number\n");
+			errno = 0;
+			if ((args->stderr_addr = strtol(optarg, NULL, 0)) == 0) {
+				if (errno != 0) {
+					fprintf(stderr, "-e must be number\n");
+				}
+				else {
+					fprintf(stderr, "-e cannot be 0");
+				}
 				return 1;
 			}
 			break;
-		// */
 		case 'p':
 #ifndef NO_PERPHS
 			parsePeripherals(optarg);
@@ -405,22 +400,6 @@ int parsePeripherals(char* p) {
 	return 1;
 }
 #endif // NO_PERPHS
-
-// Returns 1 if success
-int parseInt(int* i, char* strint) {
-	char *c;
-	int radix;
-	if (strint[0] == '0') {
-		radix = (strint[1] == 'x') ? 16 : 8;
-	}
-	else {
-		radix = 10;
-	}
-	*i = strtol(strint, &c, radix);
-	if (*c != '\0')
-		return 0;
-	return 1;
-}
 
 //////////////////////////////////////////////////
 // Printing
