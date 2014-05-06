@@ -9,7 +9,9 @@ SOURCES = megasim.c \
 		  debugterm.c \
 		  devices.c \
 		  opcode_defs.c \
-		  peripherals.c
+		  peripherals.c \
+		  debugterm.tab.c \
+		  lex.yy.c
 
 ## FLAGS
 DEFINES =
