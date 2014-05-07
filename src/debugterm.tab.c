@@ -448,8 +448,8 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    53,    53,    54,    55,    56,    57,    58,    59,    62,
-      70,    71,    74,    75,    76,    77,    80,    81,    82,    90,
-      93,    94,    95,    99,   100
+      72,    73,    76,    77,    78,    79,    82,    83,    84,    92,
+      95,    96,    97,   101,   102
 };
 #endif
 
@@ -1410,44 +1410,46 @@ yyreduce:
     { 
 										main_mem[(yyvsp[(1) - (3)].ival)] = (yyvsp[(3) - (3)].ival); 
 										if ((yyvsp[(1) - (3)].ival) < 32)
-											printf("R%d = %d\n", (yyvsp[(1) - (3)].ival), (yyvsp[(3) - (3)].ival));
+											printf("R%d = ", (yyvsp[(1) - (3)].ival));
 										else
-											printf("MEM[%X] = %d\n", (yyvsp[(1) - (3)].ival), (yyvsp[(3) - (3)].ival));
+											printf("MEM[%X] = ", (yyvsp[(1) - (3)].ival));
+
+										printf("%d\n", main_mem[(yyvsp[(1) - (3)].ival)]);
 									;}
     break;
 
   case 10:
-#line 70 "debugterm.y"
+#line 72 "debugterm.y"
     { printf("0x%X\n", (yyvsp[(2) - (2)].ival)); ;}
     break;
 
   case 11:
-#line 71 "debugterm.y"
+#line 73 "debugterm.y"
     { printf("%d\n", (yyvsp[(2) - (2)].ival)); ;}
     break;
 
   case 13:
-#line 75 "debugterm.y"
+#line 77 "debugterm.y"
     { (yyval.ival) = -1 * (yyvsp[(2) - (2)].ival); ;}
     break;
 
   case 14:
-#line 76 "debugterm.y"
+#line 78 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (3)].ival) + (yyvsp[(3) - (3)].ival); ;}
     break;
 
   case 15:
-#line 77 "debugterm.y"
+#line 79 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (3)].ival) - (yyvsp[(3) - (3)].ival); ;}
     break;
 
   case 17:
-#line 81 "debugterm.y"
+#line 83 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (3)].ival) * (yyvsp[(3) - (3)].ival); ;}
     break;
 
   case 18:
-#line 82 "debugterm.y"
+#line 84 "debugterm.y"
     { 
 									if((yyvsp[(3) - (3)].ival) == 0) 
 										yyerror("undefined"); 
@@ -1457,32 +1459,32 @@ yyreduce:
     break;
 
   case 19:
-#line 90 "debugterm.y"
+#line 92 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (1)].ival); ;}
     break;
 
   case 20:
-#line 93 "debugterm.y"
+#line 95 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (1)].ival); ;}
     break;
 
   case 21:
-#line 94 "debugterm.y"
+#line 96 "debugterm.y"
     { (yyval.ival) = main_mem[(yyvsp[(1) - (1)].ival)]; ;}
     break;
 
   case 22:
-#line 95 "debugterm.y"
+#line 97 "debugterm.y"
     { (yyval.ival) = (yyvsp[(2) - (3)].ival); ;}
     break;
 
   case 23:
-#line 99 "debugterm.y"
+#line 101 "debugterm.y"
     { (yyval.ival) = (yyvsp[(1) - (1)].ival); ;}
     break;
 
   case 24:
-#line 100 "debugterm.y"
+#line 102 "debugterm.y"
     { 
 									if ((yyvsp[(1) - (1)].ival) > 31)
 										yyerror("Not valid register");
@@ -1493,7 +1495,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 1497 "debugterm.tab.c"
+#line 1499 "debugterm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1707,7 +1709,7 @@ yyreturn:
 }
 
 
-#line 109 "debugterm.y"
+#line 111 "debugterm.y"
 
 
 void yyerror(const char *s) {

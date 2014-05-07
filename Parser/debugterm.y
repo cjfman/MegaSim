@@ -62,9 +62,11 @@ commands: assignment			{ handle_command = 0 }
 assignment: variable '=' expression { 
 										main_mem[$1] = $3; 
 										if ($1 < 32)
-											printf("R%d = %d\n", $1, $3);
+											printf("R%d = ", $1);
 										else
-											printf("MEM[%X] = %d\n", $1, $3);
+											printf("MEM[%X] = ", $1);
+
+										printf("%d\n", main_mem[$1]);
 									}
 
 print: PRINT_HEX expression		{ printf("0x%X\n", $2); }
