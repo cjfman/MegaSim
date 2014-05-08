@@ -19,6 +19,11 @@ int yylex(void);
 
 int yydebug;
 int handle_command;
+int error_code;
+
+#define UNKNOWN_ERR		0
+#define REGISTER_ERR	2
+#define ADDRESS_ERR		3
 
 %}
 
@@ -103,8 +108,11 @@ primary: CONSTANT				{ $$ = $1; }
 variable: 
 	  ADDRESS 					{ $$ = $1; }
 	| REGISTER 					{ 
-									if ($1 > 31)
+									if ($1 > 31) {
 										yyerror("Not valid register");
+										error_code = REGISTER_ERR;
+										YYERROR;
+									}
 									else
 										$$ = $1; 
 								}
@@ -130,12 +138,26 @@ int runDebugTerm(void) {
 		printf(">");
 		int error = yyparse();
 		if (error) {
-			fprintf(stderr, "Unknown Command\n");
+			fprintf(stderr, "Unkown error\n");
+			error_code = 0;
 			continue;
 		}
 		switch (handle_command) {
 		case -1: 
-			fprintf(stderr, "Unknown Command\n");
+			switch (error_code) {
+			case 0:
+				fprintf(stderr, "Unknown command\n");
+				break;
+			case REGISTER_ERR:
+				fprintf(stderr, "Bad register\n");
+				break;
+			case ADDRESS_ERR:
+				fprintf(stderr, "Bad address\n");
+				break;
+			default:
+				fprintf(stderr, "Unkown error\n");
+				break;
+			}
 			break;
 		case QUIT:
 			return EXIT_ERROR;
