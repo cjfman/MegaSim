@@ -34,6 +34,7 @@ int handle_command;
 %token <ival> REGISTER
 
 // Commands
+%token <sval> COMMAND
 %token CONTINUE
 %token STEP
 %token DISASM
@@ -57,6 +58,8 @@ commands: assignment			{ handle_command = 0 }
 | STEP							{ handle_command = STEP }
 | DISASM						{ handle_command = DISASM }
 | QUIT							{ handle_command = QUIT }
+| error 						{ handle_command = -1 }
+| 								{ handle_command = 0 }
 ;
 
 assignment: variable '=' expression { 
@@ -111,7 +114,7 @@ variable:
 %%
 
 void yyerror(const char *s) {
-	printf("Parse Error! Message: %s\n", s);
+	//fprintf(stderr, "Parse Error! Message: %s\n", s);
 }
 
 int runDebugTerm(void) {
@@ -127,10 +130,12 @@ int runDebugTerm(void) {
 		printf(">");
 		int error = yyparse();
 		if (error) {
+			fprintf(stderr, "Unknown Command\n");
 			continue;
 		}
 		switch (handle_command) {
-		case 0: 
+		case -1: 
+			fprintf(stderr, "Unknown Command\n");
 			break;
 		case QUIT:
 			return EXIT_ERROR;
@@ -145,6 +150,8 @@ int runDebugTerm(void) {
 			break;
 		case DISASM:
 			printDisAsm();
+			break;
+		default:
 			break;
 		}
 	}
