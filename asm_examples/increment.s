@@ -9,6 +9,5 @@
 main:
 	CLR r0
 LOOP:
-	BREAK
 	INC r0
 	RJMP LOOP

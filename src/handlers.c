@@ -6,6 +6,7 @@
 //
 
 #include <stdio.h>
+#include <time.h>
 #include "handlers.h"
 #include "core.h"
 #include "debugterm.h"
@@ -220,6 +221,10 @@ void printError(int error) {
 void reset_run(void) {
 	pc = 0;
 	cycle_count = 0;
+	last_count = 0;
+	start_time = time(0);
+	last_time = start_time;
+	break_now = true;
 	*SP = coredef->sram_end;
 }
 

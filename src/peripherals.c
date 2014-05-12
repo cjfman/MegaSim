@@ -1,5 +1,10 @@
 // peripherals.c
 
+#ifdef NO_HARDWARE
+#define NO_PERPHS
+#endif // NO_HARDWARE
+
+
 #ifndef NO_PERPHS
 
 #ifndef DEBUG_PERPH

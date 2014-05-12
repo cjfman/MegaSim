@@ -14,7 +14,8 @@ SOURCES = megasim.c \
 		  lex.yy.c
 
 ## FLAGS
-DEFINES = -D NO_TIMERS
+DEFINES = -D NO_HARDWARE
+		 #-D NO_TIMERS
 		 #-D DEBUG_PERPH
 		 #-D NO_PERPHS
 	     #-D DEBUG

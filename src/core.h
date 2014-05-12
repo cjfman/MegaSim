@@ -27,6 +27,14 @@ extern "C" {
 // Memory Structures
 ////////////////////////
 
+// Global Hardware
+uint64_t cycle_count;	// The total number of cycles executed since last reset
+uint64_t last_count;	// Number since the last break
+uint64_t start_time;	// The time of last reset
+uint64_t last_time;		// The time of the last break
+bool break_now;
+
+
 // Status register
 // +-------------------------------+
 // | I | T | H | S | V | N | Z | C |
@@ -45,7 +53,6 @@ bool sreg[8];
 
 // Program Counter
 uint32_t pc;
-uint64_t cycle_count;
 
 // Main Memory
 uint8_t *main_mem;
