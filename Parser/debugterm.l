@@ -49,12 +49,11 @@ p\/x					{
 						}
 
 continue				{ return CONTINUE; }
-
 step					{ return STEP; }
-
 disasm					{ return DISASM; }
-
 quit					{ return QUIT; }
+rate					{ return RATE; }
+
 
  /* end sequence */
 [\n]					{ 

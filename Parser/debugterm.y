@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <time.h>
 #include "debugterm.h"
 #include "core.h"
 #include "handlers.h"
@@ -44,6 +45,7 @@ int error_code;
 %token STEP
 %token DISASM
 %token QUIT
+%token RATE
 %token PRINT
 %token PRINT_HEX
 
@@ -63,6 +65,7 @@ commands: assignment			{ handle_command = 0 }
 | STEP							{ handle_command = STEP }
 | DISASM						{ handle_command = DISASM }
 | QUIT							{ handle_command = QUIT }
+| RATE							{ handle_command = RATE }
 | error 						{ handle_command = -1 }
 | 								{ handle_command = 0 }
 ;
@@ -126,8 +129,9 @@ void yyerror(const char *s) {
 }
 
 int runDebugTerm(void) {
-	fprintf(stderr, "\nStarting Debug Terminal\n");
+	uint64_t now_time = time(0);
 	debug_mode = 1;
+	fprintf(stderr, "\nStarting Debug Terminal\n");
 
 	// Print next instruction
 	Instruction inst = program->instructions[pc];
@@ -159,6 +163,18 @@ int runDebugTerm(void) {
 				break;
 			}
 			break;
+		case RATE:
+		{
+			uint64_t diff = now_time - last_time;
+			if (diff != 0) {
+				uint64_t rate = (cycle_count - last_count) / diff;
+				fprintf(stderr, "Rate = %llu instructions/s\n", rate);
+			}
+			else {
+				fprintf(stderr, "Rate error, no time has elapsed\n");
+			}
+			break;
+		}
 		case QUIT:
 			return EXIT_ERROR;
 		case STEP:
@@ -177,6 +193,10 @@ int runDebugTerm(void) {
 			break;
 		}
 	}
+	
+	// Closing sequence
+	last_count = cycle_count;
+	last_time = time(0);
 	return 0;
 }
 

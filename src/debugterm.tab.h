@@ -47,8 +47,9 @@
      STEP = 263,
      DISASM = 264,
      QUIT = 265,
-     PRINT = 266,
-     PRINT_HEX = 267
+     RATE = 266,
+     PRINT = 267,
+     PRINT_HEX = 268
    };
 #endif
 /* Tokens.  */
@@ -60,22 +61,23 @@
 #define STEP 263
 #define DISASM 264
 #define QUIT 265
-#define PRINT 266
-#define PRINT_HEX 267
+#define RATE 266
+#define PRINT 267
+#define PRINT_HEX 268
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 30 "debugterm.y"
+#line 31 "debugterm.y"
 {
 	int ival;
 	char cval;
 	char *sval;
 }
 /* Line 1529 of yacc.c.  */
-#line 79 "debugterm.tab.h"
+#line 81 "debugterm.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

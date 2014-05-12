@@ -152,6 +152,8 @@ int runAVR(void) {
 		for (i = 0; i < inst.cycles; i++) {
 			cycle_count++; 
 		}
+#else
+		cycle_count += inst.cycles;
 #endif 	// NO_HARDWARE
 #ifndef NO_PERPHS
 		if (perph_write_flag) {
