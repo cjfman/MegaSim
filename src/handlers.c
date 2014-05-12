@@ -203,9 +203,9 @@ void printError(int error) {
 #define GET_RD7 bool rd7 = (regs[inst->D] >> 7) & 0x01;
 #define GET_RR3 bool rr3 = (regs[inst->R] >> 3) & 0x01;
 #define GET_RR7 bool rr7 = (regs[inst->R] >> 7) & 0x01;
-#define GET_K0 bool k0 = regs[inst->K] & 0x01;
-#define GET_K3 bool k3 = (regs[inst->K] >> 3) & 0x01;
-#define GET_K7 bool k7 = (regs[inst->K] >> 7) & 0x01;
+#define GET_K0 bool k0 = inst->K & 0x01;
+#define GET_K3 bool k3 = (inst->K >> 3) & 0x01;
+#define GET_K7 bool k7 = (inst->K >> 7) & 0x01;
 #define GET_RES3 bool res3 = (res >> 3) & 0x01;
 #define GET_RES7 bool res7 = (res >> 7) & 0x01;
 #define GET_RES15 bool res15 = (res >> 15) & 0x01;
@@ -1012,7 +1012,7 @@ int CPC_run(Instruction *inst) {
 }
 
 int CPI_run(Instruction *inst) {
-	uint8_t res = regs[inst->D] - regs[inst->K];
+	uint8_t res = regs[inst->D] - inst->K;
 	// Get bits
 	GET_RD3;
 	GET_RD7;
