@@ -1,7 +1,6 @@
 PROJECT = megasim
 
 ## Sources
-
 SOURCES = megasim.c \
 		  core.c \
 		  decoder.c \
@@ -14,8 +13,7 @@ SOURCES = megasim.c \
 		  lex.yy.c
 
 ## FLAGS
-DEFINES = -D NO_HARDWARE
-		 #-D NO_TIMERS
+DEFINES = -D NO_TIMERS
 		 #-D DEBUG_PERPH
 		 #-D NO_PERPHS
 	     #-D DEBUG
@@ -29,7 +27,7 @@ CXXFLAGS =
 OBJS = $(SOURCES:.c=.c.o)
 
 all: $(OBJS)
-	$(CC) $(CCFLAGS) $^ -o $(PROJECT)
+	$(CC) $(CCFLAGS) -lm $^ -o $(PROJECT)
 	
 %.c.o : %.c
 	$(CC) $(CCFLAGS) -o $@ -c $<
