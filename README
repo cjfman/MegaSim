@@ -23,10 +23,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-Installing:
-Installing is easy with GNU make. Change in this directory and run the following commands
+// Installing /////////////////////////////////////////////////////////////////
+
+Installing is easy with GNU make. Change in this directory and run the following
+commands:
 
 make
 sudo make install
 
 This will install a single executable file in /usr/bin
+
+
+// Uninstalling ///////////////////////////////////////////////////////////////
+sudo make uninstall
+
+
+// Usage //////////////////////////////////////////////////////////////////////
+
+megasim [options] program
+
+The program should either be a binary file or an intel hex file that represents
+an executable AVR program
+
+Options:
+
+-h  	specifies that the program is a hex file. This will be auto-detected if
+		the file ends in .hex.
+
+-o		sets the I/O address to map to stdout
+
+-e		sets the I/O address to map to stdin
+
+-p		sets the list of peripherals to be added to the execution. The required
+		argument should be a comma separated list of paths to executables 
+
