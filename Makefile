@@ -28,11 +28,14 @@ all: $(OBJS)
 install: $(PROJECT)
 	cp $(PROJECT) /usr/bin/
 	rm -rf $(PROJECT) $(OBJS) *.dSYM
+
+uninstall:
+	rm -f /usr/bin/$(PROJECT)
 	
-%.c.o : %.c
+%.c.o : src/%.c
 	$(CC) $(CCFLAGS) -o $@ -c $<
 
-%.cpp.o : %.cpp
+%.cpp.o : src/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 clean:
