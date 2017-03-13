@@ -586,7 +586,7 @@ int MUL_run(Instruction *inst) {
 // Multiply Signed
 int MULS_run(Instruction *inst) {
 	int16_t opL, opR;	// Left and right operands
-#ifdef IS_ARITHMETIC_RS
+#if IS_ARITHMETIC_RS
 	opL = ((int16_t)regs[inst->D] << 8) >> 8;
 	opR = ((int16_t)regs[inst->R] << 8) >> 8;
 #else
@@ -614,7 +614,7 @@ int MULSU_run(Instruction *inst) {
 	int16_t opL; 	// Left operand Rd is signed.
 	uint16_t opR;	// Right operand Rr is signed.
 	opR = (uint16_t)regs[inst->R];
-#ifdef IS_ARITHMETIC_RS
+#if IS_ARITHMETIC_RS
 	opL = ((int8_t)regs[inst->D] << 8) >> 8;
 #else
 	opL = (int16_t)regs[inst->D];
@@ -649,7 +649,7 @@ int FMUL_run(Instruction *inst) {
 // Fractional Multiply Signed
 int FMULS_run(Instruction *inst) {
 	int16_t opL, opR;	// Left and right operands
-#ifdef IS_ARITHMETIC_RS
+#if IS_ARITHMETIC_RS
 	opL = ((int16_t)regs[inst->D] << 8) >> 8;
 	opR = ((int16_t)regs[inst->R] << 8) >> 8;
 #else
@@ -678,7 +678,7 @@ int FMULSU_run(Instruction *inst) {
 	int16_t opL; 	// Left operand Rd is signed.
 	uint16_t opR;	// Right operand Rr is signed.
 	opR = (uint16_t)regs[inst->R];
-#ifdef IS_ARITHMETIC_RS
+#if IS_ARITHMETIC_RS
 	opL = ((int8_t)regs[inst->D] << 8) >> 8;
 #else
 	opL = (int16_t)regs[inst->D];
