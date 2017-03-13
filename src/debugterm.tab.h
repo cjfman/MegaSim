@@ -42,38 +42,42 @@
      CONSTANT = 258,
      ADDRESS = 259,
      REGISTER = 260,
-     CONTINUE = 261,
-     STEP = 262,
-     DISASM = 263,
-     QUIT = 264,
-     PRINT = 265,
-     PRINT_HEX = 266
+     COMMAND = 261,
+     CONTINUE = 262,
+     STEP = 263,
+     DISASM = 264,
+     QUIT = 265,
+     RATE = 266,
+     PRINT = 267,
+     PRINT_HEX = 268
    };
 #endif
 /* Tokens.  */
 #define CONSTANT 258
 #define ADDRESS 259
 #define REGISTER 260
-#define CONTINUE 261
-#define STEP 262
-#define DISASM 263
-#define QUIT 264
-#define PRINT 265
-#define PRINT_HEX 266
+#define COMMAND 261
+#define CONTINUE 262
+#define STEP 263
+#define DISASM 264
+#define QUIT 265
+#define RATE 266
+#define PRINT 267
+#define PRINT_HEX 268
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 25 "debugterm.y"
+#line 31 "debugterm.y"
 {
 	int ival;
 	char cval;
 	char *sval;
 }
 /* Line 1529 of yacc.c.  */
-#line 77 "debugterm.tab.h"
+#line 81 "debugterm.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

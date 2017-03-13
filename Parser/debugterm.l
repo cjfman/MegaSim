@@ -12,6 +12,10 @@ extern "C" {
 
 %option noyywrap 
 
+ALPHA_L = [a-z]
+ALPHA_H = [A-Z]
+ALPHA = ALPHA_L|ALPHA_H
+
 %%
 
  /* White space */
@@ -39,21 +43,20 @@ extern "C" {
 */
 
  /* Commands */
- p\/x					{
+p\/x					{
  							yylval.sval = strdup(yytext);
 							return PRINT_HEX;
 						}
 
 continue				{ return CONTINUE; }
-
 step					{ return STEP; }
-
 disasm					{ return DISASM; }
-
 quit					{ return QUIT; }
+rate					{ return RATE; }
+
 
  /* end sequence */
-[\n;]						{ 
+[\n]					{ 
 							return 0;
 						}
 

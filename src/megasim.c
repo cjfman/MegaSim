@@ -22,6 +22,7 @@
 #include "decoder.h"
 #include "handlers.h"
 #include "peripherals.h"
+#include "debugterm.h"
 
 #ifdef NO_HARDWARE
 #define NO_PERPHS
@@ -88,8 +89,11 @@ int main(int argc, char* argv[]) {
 ////////////////////////////////////////
 
 void intHandler(int val) {
-	fprintf(stderr, "\nINT Signal Caught\n");
-	exit(0);
+	//fprintf(stderr, "\nINT Signal Caught\n");
+	//exit(0);
+	if (!debug_mode) {
+		break_now = true;
+	}
 }
 
 ///////////////////////////////////////////

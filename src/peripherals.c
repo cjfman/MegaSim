@@ -1,5 +1,10 @@
 // peripherals.c
 
+#ifdef NO_HARDWARE
+#define NO_PERPHS
+#endif // NO_HARDWARE
+
+
 #ifndef NO_PERPHS
 
 #ifndef DEBUG_PERPH
@@ -47,6 +52,7 @@
 #define LMP_SYNC	0x28
 #define LMP_UNSYNC	0x29
 #define LMP_CLK		0x2A
+#define LMP_BREAK	0x2D
 // Data
 #define LMP_DATAM	0x40
 #define LMP_DATAP	0x41
@@ -104,6 +110,7 @@ bool claimpnHandler(Peripheral *perph);
 bool writemHandler(Peripheral *perph);
 bool writepHandler(Peripheral *perph);
 bool writepnHandler(Peripheral *perph);
+bool breakHandler(Peripheral *perph);
 
 /////////////////////////////////
 // Open / Close Peripherals
@@ -434,6 +441,9 @@ void handleCommand(Peripheral *p, char c) {
 	case LMP_CLAIMPN:
 		claimpnHandler(p);
 		break;
+	case LMP_BREAK:
+		breakHandler(p);
+		break;
 	case LMP_SYNC:
 	case LMP_UNSYNC:
 	case LMP_CLK:
@@ -639,6 +649,11 @@ bool writepnHandler(Peripheral *perph) {
 		return false;
 	}
 	sendChar(perph, LMP_ACK);
+	return true;
+}
+
+bool breakHandler(Peripheral *perph) {
+	break_now = true;
 	return true;
 }
 

@@ -9,11 +9,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 #include "core.h"
 #include "handlers.h"
 #include "decoder.h"
 #include "peripherals.h"
 #include "timers.h"
+#include "debugterm.h"
 
 #ifdef NO_HARDWARE
 #define NO_PORTS
@@ -191,7 +193,14 @@ int runAVR(void) {
 		fprintf(stderr, "\n");
 #endif // DEBUG_CORE
 		// Run instruction
-		int error = handlers[inst.op](&inst);			
+		int error;
+		if (break_now) {
+			break_now = false;
+			error = runDebugTerm();
+		}
+		else {
+			error = handlers[inst.op](&inst);			
+		}
 		if (error != 0) {								
 			return error;
 		}
@@ -204,7 +213,9 @@ int runAVR(void) {
 		// Call hardware handler
 		int i;
 		for (i = 0; i < inst.cycles; i++) {
+			cycle_count++; 
 		}
+#else
 		cycle_count += inst.cycles;
 #endif 	// NO_HARDWARE
 #ifndef NO_PERPHS

@@ -13,12 +13,7 @@ SOURCES = megasim.c \
 		  lex.yy.c
 
 ## FLAGS
-DEFINES =
-#DEFINES += -D DEBUG
-DEFINES += -D NO_TIMERS
-#DEFINES += -D DEBUG_PERPH
-#DEFINES += -D NO_PERPHS
-#DEFINES += -D DEBUG_CORE
+DEFINES = -D NO_TIMERS
 
 FLAGS = -g -O0 $(DEFINES)
 CCFLAGS = $(FLAGS)
@@ -29,11 +24,18 @@ OBJS = $(SOURCES:.c=.c.o)
 
 all: $(OBJS)
 	$(CC) $(CCFLAGS) -lm $^ -o $(PROJECT)
+
+install: $(PROJECT)
+	cp $(PROJECT) /usr/bin/
+	rm -rf $(PROJECT) $(OBJS) *.dSYM
+
+uninstall:
+	rm -f /usr/bin/$(PROJECT)
 	
-%.c.o : %.c
+%.c.o : src/%.c
 	$(CC) $(CCFLAGS) -o $@ -c $<
 
-%.cpp.o : %.cpp
+%.cpp.o : src/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 clean:

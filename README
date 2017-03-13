@@ -1,0 +1,62 @@
+MegaSim: 8-bit AVR microcontroller simulator
+Version 0.1
+Developed by Charles J Franklin
+
+https://github.com/cjfman/MegaSim
+
+
+Copyright (c) 2014 Charles J Franklin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+// Installing /////////////////////////////////////////////////////////////////
+
+Installing is easy with GNU make. Change in this directory and run the following
+commands:
+
+make
+sudo make install
+
+This will install a single executable file in /usr/bin
+
+
+// Uninstalling ///////////////////////////////////////////////////////////////
+sudo make uninstall
+
+
+// Usage //////////////////////////////////////////////////////////////////////
+
+megasim [options] program
+
+The program should either be a binary file or an intel hex file that represents
+an executable AVR program
+
+Options:
+
+-h  	specifies that the program is a hex file. This will be auto-detected if
+		the file ends in .hex.
+
+-o		sets the I/O address to map to stdout
+
+-e		sets the I/O address to map to stdin
+
+-p		sets the list of peripherals to be added to the execution. The required
+		argument should be a comma separated list of paths to executables 
+
